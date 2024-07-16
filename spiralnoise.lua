@@ -1,4 +1,4 @@
--- title:   spiralnoise2
+-- title:   spiral
 -- author:  game developer, email, etc.
 -- desc:    short description
 -- site:    website link
@@ -16,57 +16,58 @@ function customRandom()
 	return 1 - math.pow(math.random(), 5)
 end
 
+function myCircb(centerx, centery, radius, color)
+ for i = 0, numPoints do
+ 	local angle = (i / numPoints) * math.pi * 2
+  local x = centerx + radius * math.cos(angle)
+  local y = centery + radius * math.sin(angle)
+  pix(x, y, color)
+ end
+end
+
 function mySpiral(centerx, centery, radius, color)
-   startradius = radius / 10
-   lastx = -999
-   lasty = -999
+	startradius = radius / 10
+	lastx = -999
+	lasty = -999
  for angle = 0, 1440, 5 do
-    startradius = startradius + 0.25
-    radians = math.rad(angle)
-    local x = centerx + startradius * math.cos(radians)
-    local y = centery + startradius * math.sin(radians)
-    if lastx > -999 then
-       line(x, y, lastx, lasty, color)
-    end
-    lastx = x
-    lasty = y
+  startradius = startradius + 0.25
+  radians = math.rad(angle)
+  local x = centerx + startradius * math.cos(radians)
+  local y = centery + startradius * math.sin(radians)
+  if lastx > -999 then
+  	line(x, y, lastx, lasty, color)
+  end
+  lastx = x
+  lasty = y
  end
 end
 
 function myNoiseSpiral(centerx, centery, radius, color)
-	for i = 0, 10 do
-		startradius = math.random(1, radius)
-	 radiusNoise = math.random(10)
-  startangle = math.random(0, 90)
-  endangle = 360*4 + math.random(360*4)
-  anglestep = 2 + math.random(1, 2)
-		lastx, lasty = -999, -999
- 	for angle = startangle, endangle, anglestep do
-  		radiusNoise = radiusNoise + 0.08
-  		thisradius = startradius
-  																	+ (radiusNoise 
-  			              * (1 - customRandom()))
-  		startradius = startradius + 0.05 + (1-customRandom())
- 			radians = math.rad(angle)
-  		local x = centerx + thisradius * math.cos(radians)
-  		local y = centery + thisradius * math.sin(radians)
-  		if lastx > -999 then
-  				line(x, y, lastx, lasty, color)
-  		end
-  		lastx, lasty = x, y
- 		end
-	end
+   startradius = radius / 10.0
+   lastx, lasty = -999, -999
+   radiusNoise = math.random(startradius)
+   for angle = 0, 360*4, 5 do
+      radiusNoise = radiusNoise + 0.08
+      thisradius = startradius
+	 + (radiusNoise 
+	    * (1 - customRandom()))
+      startradius = startradius + 0.20 + (1-customRandom())
+      radians = math.rad(angle)
+      local x = centerx + thisradius * math.cos(radians)
+      local y = centery + thisradius * math.sin(radians)
+      if lastx > -999 then
+	 line(x, y, lastx, lasty, color)
+      end
+      lastx, lasty = x, y
+   end
 end
 
 function TIC() 
-	-- cls(1)
+	cls(1)
 	-- circb(centerX, centerY, radius+10, 14)
-	-- myNoiseSpiral(centerX, centerY, radius, 4)
+	myNoiseSpiral(centerX, centerY, radius, 4)
 	-- print(math.random(), 0, 0)
 	-- print(1 - customRandom(), 0, 10)
-	cls(1)
- myNoiseSpiral(centerX, centerY, radius, math.random(0, 15))
-	t = t + 1
 end
 
 -- <TILES>
