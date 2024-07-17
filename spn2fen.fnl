@@ -13,6 +13,41 @@
 (local num-points 150)
 (local WIDTH 240)
 (local HEIGHT 136)
+(local SCREEN_SIZE (* WIDTH HEIGHT))
+(local VRAM_ADDR 0x0000)
+(local OFFSCREEN_ADDR 0x8000) ;; Start of free RAM
+
+;; let's try some let...macros. sorry
+(macro let* [bindings body & rest]
+  (let [car (fn [lst]
+              (. lst 1))
+        cdr (fn [lst]
+              (icollect [i v (ipairs lst)]
+                (if (not= 1 i) v)))
+        empty? (fn [t]
+                 (if (= nil (next t))
+                     true
+                     false))]
+  (if (empty? bindings)
+      `(do ,body ,(table.unpack rest))
+      `(let ,(car bindings)
+            (let* ,(cdr bindings) ,body ,rest)))))
+
+;; Trying to write directly to memory and do double-buffering
+;; Doesn't seem to work.
+(fn bltBuffer []
+  (memcpy OFFSCREEN_ADDR VRAM_ADDR SCREEN_SIZE))
+(fn clearBuffer []
+  (memset OFFSCREEN_ADDR 0 SCREEN_SIZE))
+(fn db-pix [x y color]
+  (poke4 (+ (* y WIDTH) OFFSCREEN_ADDR x) color))
+(fn db-line [x1 y1 x2 y2 color]
+  (db-pix x1 y1 color)
+  (var dx (math.abs (- x2 x1)))
+  (var dy (math.abs (- y2 y1)))
+  (for [x x1 dx 1]
+    (var y (* (+ y1 dy) (/ (- x x1) dx)))
+    (db-pix x y color)))
 
 (fn custom-random []
   (- 1 (math.pow (math.random) 5)))
@@ -31,6 +66,41 @@
         (line x y lastx lasty color))
       (set lastx x)
       (set lasty y))))
+
+
+(fn my-noise-spiral [centerx centery radius color]
+  (var startradius (/ radius 10))
+  (var lastx (- 999))
+  (var lasty (- 999))
+  (var radius-noise (math.random startradius))
+  (for [angle 0 (* 360 4) 8]
+    (set radius-noise (+ radius-noise 0.08))
+    (var thisradius (+ startradius
+                       (* radius-noise
+                            (- 1 (custom-random)))))
+      (set startradius (+ startradius 0.2
+                          (- 1 (custom-random))))
+      (var radians (math.rad angle))
+      (local x (+ centerx (* thisradius (math.cos radians))))
+      (local y (+ centery (* thisradius (math.sin radians))))
+      (when (> lastx (- 999))
+        (line x y lastx lasty color))
+      (set (lastx lasty)
+           (values x y))))
+  
+(fn _G.TIC []
+  ;; (my-spiral center-x center-y radius 5)
+  ;; (cls 1)
+  ;; (when (= 0 (% myt 4))
+  ;;   (cls 1)
+  ;;   (my-noise-spiral center-x center-y radius 4))
+  ;; (clearBuffer)
+  (when (= 0 (% myt 4))
+    (cls 1)
+    (my-noise-spiral center-x center-y radius 4))
+  ;; (bltBuffer)
+  ;; (circb center-x center-y radius 5)
+  (set myt (+ myt 1)))
 
 ;; sort-of working -- blast effect
 ;; (fn my-noise-spiral [centerx centery radius color]
@@ -101,33 +171,6 @@
 ;;       (line x y lastx lasty color))
 ;;     (set (lastx lasty)
 ;;             (values x y))))
-(fn my-noise-spiral [centerx centery radius color]
-  (var startradius (/ radius 10))
-  (var lastx (- 999))
-  (var lasty (- 999))
-  (var radius-noise (math.random startradius))
-  (for [angle 0 (* 360 4) 8]
-    (set radius-noise (+ radius-noise 0.08))
-    (var thisradius (+ startradius
-                       (* radius-noise
-                            (- 1 (custom-random)))))
-      (set startradius (+ startradius 0.2
-                          (- 1 (custom-random))))
-      (var radians (math.rad angle))
-      (local x (+ centerx (* thisradius (math.cos radians))))
-      (local y (+ centery (* thisradius (math.sin radians))))
-      (when (> lastx (- 999))
-        (line x y lastx lasty color))
-      (set (lastx lasty)
-           (values x y))))
-  
-(fn _G.TIC []
-  ;; (my-spiral center-x center-y radius 5)
-  (when (= 0 (% myt 4))
-    (cls 1)
-    (my-noise-spiral center-x center-y radius 4))
-  ;; (circb center-x center-y radius 5)
-  (set myt (+ myt 1)))
 
 
 ;; <TILES>
