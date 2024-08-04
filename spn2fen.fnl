@@ -17,7 +17,7 @@
 (local VRAM_ADDR 0x0000)
 (local OFFSCREEN_ADDR 0x8000) ;; Start of free RAM
 
-;; let's try some let...macros. sorry
+;; let's try some let macros.
 (macro let* [bindings body & rest]
   (let [car (fn [lst]
               (. lst 1))
@@ -52,11 +52,31 @@
 (fn custom-random []
   (- 1 (math.pow (math.random) 5)))
 
+(lambda my-spiral2 [centerx
+                    centery
+                    radius
+                    ?color
+                    ?startradius
+                    ?step]
+  (let [spiral {:radius (or ?startradius (/ radius 10))
+                :lastx (- 1)
+                :lasty (- 1)}
+        color (or ?color 1)]
+    (for [angle 0 (* 360 (math.random 1 10)) (or ?step 8)]
+      (tset spiral :radius (+ spiral.radius 0.25))
+      (let [radians (math.rad angle)
+            x (+ centerx (* spiral.radius (math.cos radians)))
+            y (+ centery (* spiral.radius (math.sin radians)))]
+        (when (> spiral.lastx (- 1))
+          (line x y spiral.lastx spiral.lasty color))
+        (tset spiral :lastx x)
+        (tset spiral :lasty y)))))
+
 ;; working
 (fn my-spiral [centerx centery radius color]
   (var startradius (/ radius 10))
-  (global lastx (- 999))
-  (global lasty (- 999))
+  (var lastx (- 999))
+  (var lasty (- 999))
   (for [angle 0 1440 5]
     (set startradius (+ startradius 0.25))
     (let [radians (math.rad angle)
