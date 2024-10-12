@@ -32,17 +32,35 @@
         remapped (lerp low2 high2 normalized)]
     remapped))
 
-(fn my-eight-eleven [width ?color]
+(fn my-eight-ten [width height]
+  "Draw circles along an arc."
+  (for [x 1 width 5]
+    (let [n (norm x 0 width)
+          y (^ n 2)
+          yscale (lerp 20 HEIGHT y)]
+      (circb x yscale (/ width 10) 5))))
+(fn my-eight-eleven [width ?pow ?color]
+  "Draw lines down to a curve."
   (for [x 1 width 5]
     (let [n (mapvalue x 1 width -1 1)
-          p (^ n 2)
+          p (^ n (or ?pow 2))
           y (lerp 20 HEIGHT p)]
       (line x 0 x y (or ?color 2)))))
+(fn my-eight-twelve [width height]
+  "Draw gradiants."
+  (for [x 0 width 1]
+    (let [n (norm x 0.0 width)
+          val (* n 15)
+          valsquare (* (^ n 2) 15)]
+      (line x 0 x (/ height 2) val)
+      (line x (/ height 2) x HEIGHT valsquare))))
 
 (fn _G.TIC []
-  (cls 1)
-  (my-eight-eleven WIDTH 5)
-)
+  (cls 8)
+  ;; (my-eight-eleven WIDTH 2 6)
+  ;; (my-eight-twelve WIDTH HEIGHT)
+  (my-eight-ten WIDTH HEIGHT)
+  )
 
 ;; <TILES>
 ;; 001:eccccccccc888888caaaaaaaca888888cacccccccacc0ccccacc0ccccacc0ccc
