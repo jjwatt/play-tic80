@@ -1,4 +1,4 @@
-;; title:   spn2fen
+;; title:   sketch2
 ;; author:  jwatt@broken.watch
 ;; desc:    Spiral noise 2 with fennel
 ;; site:    website link
@@ -17,37 +17,28 @@
 (local VRAM_ADDR 0x0000)
 (local OFFSCREEN_ADDR 0x8000) ;; Start of free RAM
 
-;; let's try some let macros.
-(macro let* [bindings body & rest]
-  (let [car (fn [lst]
-              (. lst 1))
-        cdr (fn [lst]
-              (icollect [i v (ipairs lst)]
-                (if (not= 1 i) v)))
-        empty? (fn [t]
-                 (if (= nil (next t))
-                     true
-                     false))]
-  (if (empty? bindings)
-      `(do ,body ,(table.unpack rest))
-      `(let ,(car bindings)
-            (let* ,(cdr bindings) ,body ,rest)))))
+;; normalize
+(fn norm [value low high]
+  "Normalize value to be between 0.0 and 1.0."
+  (/ (- value low) (- high low)))
 
-;; Trying to write directly to memory and do double-buffering
-;; Doesn't seem to work.
-(fn bltBuffer []
-  (memcpy OFFSCREEN_ADDR VRAM_ADDR SCREEN_SIZE))
-(fn clearBuffer []
-  (memset OFFSCREEN_ADDR 0 SCREEN_SIZE))
-(fn db-pix [x y color]
-  (poke4 (+ (* y WIDTH) OFFSCREEN_ADDR x) color))
-(fn db-line [x1 y1 x2 y2 color]
-  (db-pix x1 y1 color)
-  (var dx (math.abs (- x2 x1)))
-  (var dy (math.abs (- y2 y1)))
-  (for [x x1 dx 1]
-    (var y (* (+ y1 dy) (/ (- x x1) dx)))
-    (db-pix x y color)))
+;; linear interpolation
+(fn lerp [low high amt]
+  "Linear interpolation. `amt` should be between 0.0 and 1.0."
+  (+ low (* amt (- high low))))
+
+(fn mapvalue [value low1 high1 low2 high2]
+  "Map from one range of values to another."
+  (let [normalized (norm value low1 high1)
+        remapped (lerp low2 high2 normalized)]
+    remapped))
+
+(fn my-eight-eleven [width ?color]
+  (for [x 1 width 5]
+    (let [n (mapvalue x 1 width -1 1)
+          p (^ n 2)
+          y (lerp 20 HEIGHT p)]
+      (line x 0 x y (or ?color 2)))))
 
 (fn custom-random []
   (- 1 (math.pow (math.random) 5)))
@@ -115,10 +106,12 @@
   ;;   (cls 1)
   ;;   (my-noise-spiral center-x center-y radius 4))
   ;; (clearBuffer)
+  (my-eight-eleven WIDTH 5)
   (when (= 0 (% myt 4))
     (cls 1)
-  ;;  (my-noise-spiral center-x center-y radius 4)
-    (my-noise-spiral center-x center-y radius 4))
+    ;;  (my-noise-spiral center-x center-y radius 4)
+    ;; (my-noise-spiral center-x center-y radius 4)
+    )
   ;; (bltBuffer)
   ;; (circb center-x center-y radius 5)
   (set myt (+ myt 1)))
