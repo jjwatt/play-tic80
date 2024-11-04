@@ -34,33 +34,19 @@
       (let [(new-x new-y) (generate-point x y vertices)]
         (tset points count [new-x new-y])
         (generate-points new-x new-y vertices (- count 1) points))))
-;; (fn _G.BDR [y]
-;;   (var rem (% t 10))
-;;   (if (= 5 rem)
-;;       (pal 1 (math.random 1 15)))
-;;   (set t (+ t 1)))
-;; (fn _G.BDR [y]
-;;   (pal 1 (+ 1 (+ 128 (* 120 (math.sin (/ (+ y (/ t 32)) 16)))))))
-;; (fn _G.BDR [y]
-;;   (let [speed 10
-;;         y-offset (/ y HEIGHT)  ; normalize y position
-;;         wave-phase (/ (+ (* y-offset math.pi) (/ t speed)) 8)]
-;;     (pal 1 (+ 1 (math.floor 
-;;                   (+ 8 
-;;                      (* 7 (math.sin wave-phase))))))))
 (fn _G.BDR [y]
-  (let [speed 16        ; higher = slower (try 64, 128, 256)
-        wave-height 16   ; higher = more spread out wave (try 16, 32, 48)
-        color-range 15    ; how many colors to cycle through
-        base-color 8    ; center color to oscillate around
-        num (+ 1 (math.floor
-                  (+ base-color
-                     (* color-range
-                        (math.sin (/ (+ y (/ t speed))
-                                     wave-height))))))]
-    (if (= 0 num)
-        (pal)
-        (pal 1 num))))
+  (let [speed 16         ;; higher = slower
+        wave-height 8    ;; higher = more spread out wave
+        color-range 15   ;; how many colors to cycle through
+        base-color 7     ;; center color to oscillate around
+        num (+ 1 (math.floor (+ base-color
+                   (* color-range (math.sin (/ (+ y (/ t speed))
+                                               wave-height))))))]
+    (if (~= num 0)
+        ;; trying to get it to not blink
+        ;; when it goes to black, it looks like it blinks.
+        (pal 1 num)
+        (pal))))
 (fn _G.BOOT []
   (let [vertices [[0 0]
 	          [(/ WIDTH 2) HEIGHT]
