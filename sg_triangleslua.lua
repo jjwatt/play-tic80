@@ -1,35 +1,15 @@
--- title:    gasket2
--- author:   jwatt
--- script:   lua
+-- title:   game title
+-- author:  game developer, email, etc.
+-- desc:    short description
+-- site:    website link
+-- license: MIT License (change this to your license of choice)
+-- version: 0.1
+-- script:  lua
 
-WIDTH=240.0
-HEIGHT=136.0
-NUMPOINTS=5000
--- 2D table of points
-local points = {}
-function BOOT()
-		-- 3 2 tuples of vertices
-		-- the first arbitrary triangle
-  local	vertices = { {0.0, 0.0},
-     {WIDTH/2.0, HEIGHT},
-     {WIDTH, 0.0} }
-  local i,j = 0
-  local p = { 50.0, 50.0 }
-  -- generate new points
-  for k=1, NUMPOINTS do
-  	j = math.random(1, 3)
-   p[1] = (p[1]+vertices[j][1])/2.0
-   p[2] = (p[2]+vertices[j][2])/2.0
-   points[k] = {p[1], p[2]}
-  end
-end
+t=0
 function TIC()
-  cls(0)
-  for k=1, NUMPOINTS do
-  	ix = points[k][1]
-   iy = points[k][2]
-   pix(-ix+WIDTH, -iy+HEIGHT, 1)
-  end
+
+	t=t+1
 end
 
 -- <TILES>
