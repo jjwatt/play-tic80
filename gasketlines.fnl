@@ -69,7 +69,7 @@
   (cls 0)
   (let [cx (/ WIDTH 2)
         cy (/ HEIGHT 2)
-        angle (* t (math.rad 0.5))
+        angle (* t (math.rad 0.25))
         cos-a (math.cos angle)
         sin-a (math.sin angle)
 
