@@ -1,6 +1,6 @@
 ;; title:   gasketrotfennel
-;; author:  game developer, email, etc.
-;; desc:    short description
+;; author:  jwatt@broken.watch
+;; desc:    Rotating sierpinksi gasket
 ;; site:    website link
 ;; license: MIT License (change this to your license of choice)
 ;; version: 0.1
@@ -10,98 +10,67 @@
 (global HEIGHT 136)
 (global NUMPOINTS 20000)
 (var t 0)
-(var points {})
+(var points [])
+
 (fn pal [c0 c1]
+  "Palette swap helper."
   (if (and (= nil c0)
            (= nil c1))
-      (for [i 0 15 1]
-        (poke4 (+ i
-                  (* 0x3FF0 2)) i))
-      (poke4 (+ c0
-                (* 0x3FF0 2)) c1)))
-(fn generate-point [lastx lasty vertices]
-  "Generate a new point halfway between current point and random vertex."
-  (let [j (math.random 1 3)
-        x (/ (+ lastx (. vertices j 1)) 2)
-        y (/ (+ lasty (. vertices j 2)) 2)]
-    (values x y)))
-(fn generate-points [x y vertices count points]
-  "Recursively generate points for Sierpinski triangle."
-  ;; stopping condition
-  (if (= 0 count)
-      points
-      ;; else
-      (let [(new-x new-y) (generate-point x y vertices)]
-        (tset points count [new-x new-y])
-        (generate-points new-x new-y vertices (- count 1) points))))
-(fn _G.BDR [y]
-  (let [speed 16         ;; higher = slower
-        wave-height 8    ;; higher = more spread out wave
-        color-range 15   ;; how many colors to cycle through
-        base-color 7     ;; center color to oscillate around
-        num (+ 1 (math.floor (+ base-color
-                   (* color-range (math.sin (/ (+ y (/ t speed))
-                                               wave-height))))))]
-    (if (~= num 0)
-        ;; trying to get it to not blink
-        ;; when it goes to black, it looks like it blinks.
-        (pal 1 num)
-        (pal))))
+      (for [i 0 15]
+        (poke4 (+ i (* 0x3FF0 2)) i))
+      (poke4 (+ c0 (* 0x3FF0 2)) c1)))
+
+(fn generate-points [count]
+  "Iteratively generates points for the Sierpinski triangle."
+  (let [vertices [{:x 0             :y 0}
+                  {:x (/ WIDTH 2)   :y HEIGHT}
+                  {:x WIDTH         :y 0}]
+        pts []]
+    (var current-x 50)
+    (var current-y 50)
+    (for [_ 1 count]
+      (let [v (. vertices (math.random 1 3))
+            next-x (/ (+ current-x v.x) 2)
+            next-y (/ (+ current-y v.y) 2)]
+        (table.insert pts {:x next-x :y next-y})
+        (set current-x next-x)
+        (set current-y next-y)))
+    pts))
+
 (fn _G.BOOT []
-  (let [vertices [[0 0]
-	          [(/ WIDTH 2) HEIGHT]
-		  [WIDTH 0]]
-	firstx 50.0
-        firsty 50.0]
-    (set points (generate-points firstx firsty vertices NUMPOINTS points))))
-(fn transform-point [x y]
-  "Transform point coordinates to screen space."
-  (values (+ (- x) WIDTH) 
-          (+ (- y) HEIGHT)))
-(fn render-points [points]
-  "Recursively render all points."
-  (fn render-loop [points count]
-    (when (> count 0)
-      (let [point (. points count)
-            (x y) (transform-point (. point 1) (. point 2))]
-        (pix x y 1)
-        (render-loop points (- count 1)))))
-  (let [count (length points)]
-    (render-loop points count)))
-(fn rotate-point [x y cx cy angle]
-  "Rotate point by angle in radians."
-  ;; Translate point to origin.
-  (let [translated-x (- x cx)
-        translated-y (- y cy)
-        ;; Rotate.
-        rotated-x (- (* translated-x (math.cos angle))
-                     (* translated-y (math.sin angle)))
-        rotated-y (+ (* translated-x (math.sin angle))
-                     (* translated-y (math.cos angle)))
-        ;; Translate point back.
-        new-x (+ rotated-x cx)
-        new-y (+ rotated-y cy)]
-    (values new-x new-y)))
-(fn rotate-points [points cx cy angle]
-  "Rotate a table of points."
-  (fn rotate-helper [points count]
-    (if (= count 0)
-        points
-        (let [point (. points count)]
-          (if point
-              (let [(new-x new-y) (rotate-point (. point 1) (. point 2) cx cy angle)]
-                (tset points count [new-x new-y])
-                (rotate-helper points (- count 1)))
-              points))))
-  (let [count (length points)]
-    (rotate-helper points count)))
+  (set points (generate-points NUMPOINTS)))
+
+(fn _G.BDR [y]
+  "Raster interrupt for rotating palette, skip black."
+  (let [speed 16
+        wave-height 8
+        amplitude 6.5
+        center-offset 8.5
+        wave-val (math.sin (/ (+ y (/ t speed)) wave-height))
+        num (math.floor (+ center-offset (* amplitude wave-val)))]
+    (pal 1 num)))
+
 (fn _G.TIC []
   (cls 0)
-  (let [cx (/ WIDTH 2.0)
-        cy (/ HEIGHT 2.0)
-        speed (math.rad 0.5)]
-    (set points (rotate-points points cx cy speed))
-    (render-points points))
+  (let [cx (/ WIDTH 2)
+        cy (/ HEIGHT 2)
+        angle (math.rad 0.5)
+        cos-a (math.cos angle)
+        sin-a (math.sin angle)]
+    ;; Rotate and render points in a single pass.
+    (each [_ p (ipairs points)]
+      ;; Translate to origin.
+      (let [tx (- p.x cx)
+            ty (- p.y cy)
+            ;; Rotate and translate back.
+            rx (+ (- (* tx cos-a) (* ty sin-a)) cx)
+            ry (+ (+ (* tx sin-a) (* ty cos-a)) cy)
+            ;; Transform to screen space.
+            sx (+ (- rx) WIDTH)
+            sy (+ (- ry) HEIGHT)]
+        (set p.x rx)
+        (set p.y ry)
+        (pix sx sy 1))))
   (set t (+ t 1)))
 
 ;; <TILES>
