@@ -44,10 +44,12 @@
   "Raster interrupt for rotating palette, skip black."
   (let [speed 16
         wave-height 8
-        amplitude 6.5
-        center-offset 8.5
-        wave-val (math.sin (/ (+ y (/ t speed)) wave-height))
-        num (math.floor (+ center-offset (* amplitude wave-val)))]
+        input-val (/ (+ y (/ t speed)) wave-height)
+        phase (- input-val (math.floor input-val))
+        tri-val (if (< phase 0.5)
+                    (* phase 2)          ; Rises smoothly from 0 to 1
+                    (- 2 (* phase 2)))   ; Falls smoothly from 1 to 0
+        num (math.floor (+ 2 (* 13 tri-val)))]
     (pal 1 num)))
 
 (fn _G.TIC []
