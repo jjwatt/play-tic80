@@ -42,14 +42,13 @@
 
 (fn _G.BDR [y]
   "Raster interrupt for rotating palette, skip black."
-  (let [speed 16
-        wave-height 8
-        input-val (/ (+ y (/ t speed)) wave-height)
-        phase (- input-val (math.floor input-val))
-        tri-val (if (< phase 0.5)
-                    (* phase 2)          ; Rises smoothly from 0 to 1
-                    (- 2 (* phase 2)))   ; Falls smoothly from 1 to 0
-        num (math.floor (+ 2 (* 13 tri-val)))]
+  ;; Fires 136 times per frame (once per scanline)
+  ;; y represents the current horizontal row being drawn.
+  (let [color-offset (+ y t)
+        virtual-palette-size 48
+        phase (% color-offset virtual-palette-size)
+        ;; Scale phase down to fit TIC-80's hardware color indices (2 to 13)
+        num (math.floor (+ 2 (* 13 (/ phase virtual-palette-size))))]
     (pal 1 num)))
 
 (fn _G.TIC []
