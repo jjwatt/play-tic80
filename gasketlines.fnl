@@ -8,9 +8,7 @@
 ;; strict:  true
 (global WIDTH 240)
 (global HEIGHT 136)
-(global NUMPOINTS 20000)
 (var t 0)
-(var points [])
 
 (fn pal [c0 c1]
   "Palette swap helper."
@@ -20,25 +18,41 @@
         (poke4 (+ i (* 0x3FF0 2)) i))
       (poke4 (+ c0 (* 0x3FF0 2)) c1)))
 
-(fn generate-points [count]
-  "Iteratively generates points for the Sierpinski triangle."
-  (let [vertices [{:x 0             :y 0}
-                  {:x (/ WIDTH 2)   :y HEIGHT}
-                  {:x WIDTH         :y 0}]
-        pts []]
-    (var current-x 50)
-    (var current-y 50)
-    (for [_ 1 count]
-      (let [v (. vertices (math.random 1 3))
-            next-x (/ (+ current-x v.x) 2)
-            next-y (/ (+ current-y v.y) 2)]
-        (table.insert pts {:x next-x :y next-y})
-        (set current-x next-x)
-        (set current-y next-y)))
-    pts))
+(fn draw-rotated-line [p1 p2 cx cy cos-a sin-a]
+  "Rotates two points and draws a line between them in one go."
+  ;; Rotate pt 1.
+  (let [tx1 (- p1.x cx)
+        ty1 (- p1.y cy)
+        rx1 (+ (- (* tx1 cos-a) (* ty1 sin-a)) cx)
+        ry1 (+ (- (* tx1 sin-a) (* ty1 cos-a)) cy)
+        sx1 (+ (- rx1) WIDTH)
+        sy1 (+ (- ry1) HEIGHT)]
 
-(fn _G.BOOT []
-  (set points (generate-points NUMPOINTS)))
+    ;; Rotate pt 2.
+    (let [tx2 (- p2.x cx)
+          ty2 (- p2.y cy)
+          rx2 (+ (- (* tx2 cos-a) (* ty2 sin-a)) cx)
+          ry2 (+ (- (* tx2 sin-a) (* ty2 cos-a)) cy)
+          sx2 (+ (- rx2) WIDTH)
+          sy2 (+ (- ry2) HEIGHT)]
+      (line sx1 sy1 sx2 sy2 1))))
+
+(fn draw-gasket [p1 p2 p3 depth cx cy cos-a sin-a]
+  "Recursively draw the triangle outlines."
+  (if (= depth 0)
+      ;; Base case: draw outer edges of this triangle segment.
+      (do
+        (draw-rotated-line p1 p2 cx cy cos-a sin-a)
+        (draw-rotated-line p2 p3 cx cy cos-a sin-a)
+        (draw-rotated-line p3 p1 cx cy cos-a sin-a))
+      ;; Recursive case: find the midpoints and subdivide into 3 smaller triangles.
+      (let [m12 {:x (/ (+ p1.x p2.x) 2) :y (/ (+ p1.y p2.y) 2)}
+            m23 {:x (/ (+ p2.x p3.x) 2) :y (/ (+ p2.y p3.y) 2)}
+            m31 {:x (/ (+ p3.x p1.x) 2) :y (/ (+ p3.y p1.y) 2)}
+            next-depth (- depth 1)]
+        (draw-gasket p1 m12 m31 next-depth cx cy cos-a sin-a)
+        (draw-gasket m12 p2 m23 next-depth cx cy cos-a sin-a)
+        (draw-gasket m31 m23 p3 next-depth cx cy cos-a sin-a))))
 
 (fn _G.BDR [y]
   "Raster interrupt for rotating palette, skip black."
@@ -55,23 +69,14 @@
   (cls 0)
   (let [cx (/ WIDTH 2)
         cy (/ HEIGHT 2)
-        angle (math.rad 0.5)
+        angle (* t (math.rad 0.5))
         cos-a (math.cos angle)
-        sin-a (math.sin angle)]
-    ;; Rotate and render points in a single pass.
-    (each [_ p (ipairs points)]
-      ;; Translate to origin.
-      (let [tx (- p.x cx)
-            ty (- p.y cy)
-            ;; Rotate and translate back.
-            rx (+ (- (* tx cos-a) (* ty sin-a)) cx)
-            ry (+ (+ (* tx sin-a) (* ty cos-a)) cy)
-            ;; Transform to screen space.
-            sx (+ (- rx) WIDTH)
-            sy (+ (- ry) HEIGHT)]
-        (set p.x rx)
-        (set p.y ry)
-        (pix sx sy 1))))
+        sin-a (math.sin angle)
+
+        p1 {:x 0           :y HEIGHT}
+        p2 {:x (/ WIDTH 2) :y 0}
+        p3 {:x WIDTH       :y HEIGHT}]
+    (draw-gasket p1 p2 p3 5 cx cy cos-a sin-a))
   (set t (+ t 1)))
 
 ;; <TILES>
