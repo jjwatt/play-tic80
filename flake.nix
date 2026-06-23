@@ -18,7 +18,14 @@
       system:
       let
         overlays = if system == "x86_64-linux" then [ nixgl.overlay ] else [ ];
-        pkgs = import nixpkgs { inherit system overlays; };
+        pkgs = import nixpkgs {
+          inherit system overlays;
+          config = {
+            permittedInsecurePackages = [
+              "quickjs-2025-09-13-2"
+            ];
+          };
+        };
 
         # Override the existing tic-80 package to inject the Pro CMake flag
         tic-80-pro = pkgs.tic-80.overrideAttrs (oldAttrs: {
