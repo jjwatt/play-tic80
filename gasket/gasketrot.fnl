@@ -1,6 +1,6 @@
 ;; title:   gasketrotfennel
-;; author:  game developer, email, etc.
-;; desc:    short description
+;; author:  jwatt@broken.watch
+;; desc:    Rotating sierpinksi gasket
 ;; site:    website link
 ;; license: MIT License (change this to your license of choice)
 ;; version: 0.1
@@ -8,79 +8,85 @@
 ;; strict:  true
 (global WIDTH 240)
 (global HEIGHT 136)
-(global NUMPOINTS 20000)
-(var points {})
-(fn generate-point [lastx lasty vertices]
-  "Generate a new point halfway between current point and random vertex."
-  (let [j (math.random 1 3)
-        x (/ (+ lastx (. vertices j 1)) 2)
-        y (/ (+ lasty (. vertices j 2)) 2)]
-    (values x y)))
-(fn generate-points [x y vertices count points]
-  "Recursively generate points for Sierpinski triangle."
-  ;; stopping condition
-  (if (= 0 count)
-      points
-      ;; else
-      (let [(new-x new-y) (generate-point x y vertices)]
-        (tset points count [new-x new-y])
-        (generate-points new-x new-y vertices (- count 1) points))))
-(fn _G.BOOT []
-  (let [vertices [[0 0]
-	          [(/ WIDTH 2) HEIGHT]
-		  [WIDTH 0]]
-	firstx 50.0
-        firsty 50.0]
-    (set points (generate-points firstx firsty vertices NUMPOINTS points)))
-    (music 0))
-(fn transform-point [x y]
-  "Transform point coordinates to screen space."
-  (values (+ (- x) WIDTH) 
-          (+ (- y) HEIGHT)))
-(fn render-points [points]
-  "Recursively render all points."
-  (fn render-loop [points count]
-    (when (> count 0)
-      (let [point (. points count)
-            (x y) (transform-point (. point 1) (. point 2))]
-        (pix x y 1)
-        (render-loop points (- count 1)))))
-  (let [count (length points)]
-    (render-loop points count)))
-(fn rotate-point [x y cx cy angle]
-  "Rotate point by angle in radians."
-  ;; Translate point to origin.
-  (let [translated-x (- x cx)
-        translated-y (- y cy)
-        ;; Rotate.
-        rotated-x (- (* translated-x (math.cos angle))
-                     (* translated-y (math.sin angle)))
-        rotated-y (+ (* translated-x (math.sin angle))
-                     (* translated-y (math.cos angle)))
-        ;; Translate point back.
-        new-x (+ rotated-x cx)
-        new-y (+ rotated-y cy)]
-    (values new-x new-y)))
-(fn rotate-points [points cx cy angle]
-  "Rotate a table of points."
-  (fn rotate-helper [points count]
-    (if (= count 0)
-        points
-        (let [point (. points count)]
-          (if point
-              (let [(new-x new-y) (rotate-point (. point 1) (. point 2) cx cy angle)]
-                (tset points count [new-x new-y])
-                (rotate-helper points (- count 1)))
-              points))))
-  (let [count (length points)]
-    (rotate-helper points count)))
+(var t 0)
+(music 0)
+(fn pal [c0 c1]
+  "Palette swap helper."
+  (if (and (= nil c0)
+           (= nil c1))
+      (for [i 0 15]
+        (poke4 (+ i (* 0x3FF0 2)) i))
+      (poke4 (+ c0 (* 0x3FF0 2)) c1)))
+
+(fn draw-rotated-line [p1 p2 cx cy angle]
+  "Rotates two points and draws a line between them in one go."
+  ;; Rotate pt 1.
+  (let [tx1 (- p1.x cx)
+        ty1 (- p1.y cy)
+        ;; Distance from center for Point 1
+        dist1 (math.sqrt (+ (* tx1 tx1) (* ty1 ty1)))
+        ;; Warp angle based on distance and time.
+        angle1 (+ angle (/ dist1 40))
+        cos-a1 (math.cos angle1)
+        sin-a1 (math.sin angle1)
+        rx1 (+ (- (* tx1 cos-a1) (* ty1 sin-a1)) cx)
+        ry1 (+ (- (* tx1 sin-a1) (* ty1 cos-a1)) cy)
+        sx1 (+ (- rx1) WIDTH)
+        sy1 (+ (- ry1) HEIGHT)]
+
+    ;; Rotate pt 2.
+    (let [tx2 (- p2.x cx)
+          ty2 (- p2.y cy)
+          ;; Distance from center for Point 2
+          dist2 (math.sqrt (+ (* tx2 tx2) (* ty2 ty2)))
+          angle2 (+ angle (/ dist2 40))
+          cos-a2 (math.cos angle2)
+          sin-a2 (math.sin angle2)
+          rx2 (+ (- (* tx2 cos-a2) (* ty2 sin-a2)) cx)
+          ry2 (+ (- (* tx2 sin-a2) (* ty2 cos-a2)) cy)
+          sx2 (+ (- rx2) WIDTH)
+          sy2 (+ (- ry2) HEIGHT)]
+      (line sx1 sy1 sx2 sy2 1))))
+
+(fn draw-gasket [p1 p2 p3 depth cx cy angle]
+  "Recursively draw the triangle outlines."
+  (if (= depth 0)
+      ;; Base case: draw outer edges of this triangle segment.
+      (do
+        (draw-rotated-line p1 p2 cx cy angle)
+        (draw-rotated-line p2 p3 cx cy angle)
+        (draw-rotated-line p3 p1 cx cy angle))
+      ;; Recursive case: find the midpoints and subdivide into 3 smaller triangles.
+      (let [m12 {:x (/ (+ p1.x p2.x) 2) :y (/ (+ p1.y p2.y) 2)}
+            m23 {:x (/ (+ p2.x p3.x) 2) :y (/ (+ p2.y p3.y) 2)}
+            m31 {:x (/ (+ p3.x p1.x) 2) :y (/ (+ p3.y p1.y) 2)}
+            next-depth (- depth 1)]
+        (draw-gasket p1 m12 m31 next-depth cx cy angle)
+        (draw-gasket m12 p2 m23 next-depth cx cy angle)
+        (draw-gasket m31 m23 p3 next-depth cx cy angle))))
+
+(fn _G.BDR [y]
+  "Raster interrupt for rotating palette, skip black."
+  ;; Fires 136 times per frame (once per scanline)
+  ;; y represents the current horizontal row being drawn.
+  (let [scroll-speed 0.5
+        line-index (+ y (* t scroll-speed))
+        total-lines 64
+        phase (/ (% line-index total-lines) total-lines)
+        num (math.floor (+ 2 (* 13 phase)))]
+    (pal 1 num)))
+
 (fn _G.TIC []
   (cls 0)
-  (let [cx (/ WIDTH 2.0)
-        cy (/ HEIGHT 2.0)
-        speed (math.rad 0.5)]
-    (set points (rotate-points points cx cy speed))
-    (render-points points)))
+  (let [cx (/ WIDTH 2)
+        cy (/ HEIGHT 2)
+        angle (* t (math.rad 0.25))
+
+        p1 {:x 0           :y HEIGHT}
+        p2 {:x (/ WIDTH 2) :y 0}
+        p3 {:x WIDTH       :y HEIGHT}]
+    (draw-gasket p1 p2 p3 5 cx cy angle))
+  (set t (+ t 1)))
 
 ;; <TILES>
 ;; 001:eccccccccc888888caaaaaaaca888888cacccccccacc0ccccacc0ccccacc0ccc
@@ -97,21 +103,26 @@
 ;; 000:00000000ffffffff00000000ffffffff
 ;; 001:0123456789abcdeffedcba9876543210
 ;; 002:0123456789abcdef0123456789abcdef
+;; 003:00000fffff0000fffff0000ffff00000
 ;; </WAVES>
 
 ;; <SFX>
 ;; 000:f01000305050708080d0a0f0f0f0f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000380000000000
 ;; 001:03e0036063009300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300f300000000000000
 ;; 002:3cb0fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00fc00000000000000
+;; 003:030003000300030003000300030003000300030003000300130063007300830083009300a300a300b300b300c300d300d300e300f300f300f300f300002000000000
 ;; </SFX>
 
 ;; <PATTERNS>
-;; 002:400006000000000000000000000000000000000000400006400016000000000000000000000000000000000000000000400006000000000000000000000000000000000000400006400016000000000000000000000000000000000000000000400006000000000000000000000000000000000000400006400016000000000000000000000000000000000000000000400006000000000000000000000000000000000000400006400016000000000000000000000000000000000000000000
-;; 003:400006000000000000000000000000000000000000400006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400006000000000000000000000000000000000000000000000000400006000000000000000000000000000000000000400006000000000000000000000000000000000000000000000000400006000000000000000000000000000000000000400006000000000000000000000000000000000000000000000000
+;; 000:000000000000000000000000000000000000000000437238000000000000000000000000000000000000000000000000430238000000000000000000000000000000000000452238000000000000000000000000000000000000000000000000440238000000000000000000440238000000000000437238000000000000000000000000000000000000000000000000430238000000000000000000000000000000000000452238000000000000000000000000000000000000000000000000
+;; 001:400026400026400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026000000400026400026400026000000
+;; 002:000000000000000000000000400016000000000000000000000000000000000000000000400016000000000000000000000000000000000000000000400016000000000000000000000000000000000000000000400016000000000000000000000000000000000000000000400016000000000000000000000000000000000000000000400016000000000000000000000000000000000000000000400016000000000000000000000000000000000000000000400016000000000000000000
+;; 003:400006000000000000000000000000000000000000400006000000000000000000000000000000000000000000000000400006000000000000000000000000000000000000400006000000000000000000000000000000000000000000000000400006000000000000000000000000000000000000400006000000000000000000000000000000000000000000000000400006000000000000000000000000000000000000400006000000000000000000000000000000000000000000000000
+;; 004:000000000000000000000000000000000000000000e37236000000000000000000000000000000000000000000000000e30236000000000000000000000000000000000000e52236000000000000000000000000000000000000000000000000e40236000000000000000000e40236000000000000e37236000000000000000000000000000000000000000000000000e30236000000000000000000000000000000000000e52236000000000000000000000000000000000000000000000000
 ;; </PATTERNS>
 
 ;; <TRACKS>
-;; 000:1804c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004c00df
+;; 000:1804c05804c01803010000000000000000000000000000000000000000000000000000000000000000000000000000002e00df
 ;; 001:200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 ;; </TRACKS>
 
