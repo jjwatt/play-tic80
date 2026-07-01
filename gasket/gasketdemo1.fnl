@@ -179,7 +179,9 @@
     (pal 1 num)))
 
 (fn _G.TIC []
+  ;; "Clear screen"
   (rect 0 0 WIDTH HEIGHT 0)
+  ;; Disable mouse cursor
   (poke 0x3FFB 0)
   (let [current-scene (. scenes scene-idx)]
     (if current-scene
