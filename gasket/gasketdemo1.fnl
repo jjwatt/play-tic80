@@ -14,13 +14,13 @@
 
 (music 0)
 
-(fn pal [c0 c1]
+(fn pal [?c0 ?c1]
   "Palette swap helper."
-  (if (and (= nil c0)
-           (= nil c1))
+  (if (and (= nil ?c0)
+           (= nil ?c1))
       (for [i 0 15]
         (poke4 (+ i (* 0x3FF0 2)) i))
-      (poke4 (+ c0 (* 0x3FF0 2)) c1)))
+      (poke4 (+ ?c0 (* 0x3FF0 2)) ?c1)))
 
 (fn draw-rotated-line [p1 p2 cx cy angle twist-factor scale-y line-state]
   "Rotates two points and draws a line between them in one go."
