@@ -71,12 +71,12 @@
 (fn draw-transition [st duration current-idx]
   "Draws a horizontal curtain screen-wipe."
   (let [wipe-frames 25]
-    (if (and (or (= current-idx 2) (= current-idx 3)) (> st (- duration wipe-frames)))
+    (if (and (= current-idx 3) (> st (- duration wipe-frames)))
         (let [progress (/ (- st (- duration wipe-frames)) wipe-frames)
               wipe-w (* WIDTH progress)]
           (rect 0 0 wipe-w HEIGHT 0))
 
-        (and (or (= current-idx 3) (= current-idx 4)) (< st wipe-frames))
+        (and (= current-idx 4) (< st wipe-frames))
         (let [progress (/ st wipe-frames)
               wipe-x (* WIDTH progress)
               wipe-w (- WIDTH wipe-x)]
@@ -96,7 +96,18 @@
                        lines-to-draw (math.floor (* (/ st 180) 729))
                        line-state {:total 0 :max lines-to-draw}]
                    (draw-gasket p1 p2 p3 5 cx cy 0 0 1.0 line-state)))}
-        ;; Scene 2: Flat spin
+        ;; Scene 2: Rotate around X-axis 3D pitching
+        {:duration 180
+         :draw (fn [st]
+                 (let [cx (/ WIDTH 2)
+                       cy (/ HEIGHT 2)
+                       p1 {:x 0 :y 0}
+                       p2 {:x (/ WIDTH 2) :y HEIGHT}
+                       p3 {:x WIDTH :y 0}
+                       line-state {:total 0 :max nil}
+                       scale-y (math.abs (math.cos (* st 0.03)))]
+                   (draw-gasket p1 p2 p3 5 cx cy 0 0 scale-y line-state)))}
+        ;; Scene 3: Flat spin
         {:duration 360
          :draw (fn [st]
                  (let [cx (/ WIDTH 2)
@@ -107,17 +118,6 @@
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}]
                    (draw-gasket p1 p2 p3 5 cx cy angle 0 1.0 line-state)))}
-        ;; Scene 3: Rotate around X-axis 3D pitching
-        {:duration 240
-         :draw (fn [st]
-                 (let [cx (/ WIDTH 2)
-                       cy (/ HEIGHT 2)
-                       p1 {:x 0 :y 0}
-                       p2 {:x (/ WIDTH 2) :y HEIGHT}
-                       p3 {:x WIDTH :y 0}
-                       line-state {:total 0 :max nil}
-                       scale-y (math.abs (math.cos (* st 0.03)))]
-                   (draw-gasket p1 p2 p3 5 cx cy 0 0 scale-y line-state)))}
         ;; Scene 4: Twisting Gasket
         {:duration 360
          :draw (fn [st]
@@ -143,7 +143,7 @@
 
 (fn _G.TIC []
   (rect 0 0 WIDTH HEIGHT 0)
-
+  (poke 0x3FFB 0)
   (let [current-scene (. scenes scene-idx)]
     (if current-scene
         (do
