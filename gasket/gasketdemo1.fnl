@@ -22,7 +22,7 @@
         (poke4 (+ i (* 0x3FF0 2)) i))
       (poke4 (+ ?c0 (* 0x3FF0 2)) ?c1)))
 
-(fn draw-rotated-line [p1 p2 cx cy angle twist-factor scale-y line-state]
+(fn draw-rotated-line [p1 p2 cx cy angle twist-factor scale-y color-idx line-state]
   "Rotates two points and draws a line between them in one go."
   (set line-state.total (+ line-state.total 1))
 
@@ -49,24 +49,24 @@
             sy2-final (+ (* (- ry2 cy) scale-y) cy)
             sx2 rx2
             sy2 sy2-final]
-        (line sx1 sy1 sx2 sy2 1))))
+        (line sx1 sy1 sx2 sy2 color-idx))))
 
-(fn draw-gasket [p1 p2 p3 depth cx cy angle twist-factor scale-y line-state]
+(fn draw-gasket [p1 p2 p3 depth cx cy angle twist-factor scale-y color-idx line-state]
   "Recursively draw the triangle outlines."
   (if (= depth 0)
       ;; Base case: draw outer edges of this triangle segment.
       (do
-        (draw-rotated-line p1 p2 cx cy angle twist-factor scale-y line-state)
-        (draw-rotated-line p2 p3 cx cy angle twist-factor scale-y line-state)
-        (draw-rotated-line p3 p1 cx cy angle twist-factor scale-y line-state))
+        (draw-rotated-line p1 p2 cx cy angle twist-factor scale-y color-idx line-state)
+        (draw-rotated-line p2 p3 cx cy angle twist-factor scale-y color-idx line-state)
+        (draw-rotated-line p3 p1 cx cy angle twist-factor scale-y color-idx line-state))
       ;; Recursive case: find the midpoints and subdivide into 3 smaller triangles.
       (let [m12 {:x (/ (+ p1.x p2.x) 2) :y (/ (+ p1.y p2.y) 2)}
             m23 {:x (/ (+ p2.x p3.x) 2) :y (/ (+ p2.y p3.y) 2)}
             m31 {:x (/ (+ p3.x p1.x) 2) :y (/ (+ p3.y p1.y) 2)}
             next-depth (- depth 1)]
-        (draw-gasket p1 m12 m31 next-depth cx cy angle twist-factor scale-y line-state)
-        (draw-gasket m12 p2 m23 next-depth cx cy angle twist-factor scale-y line-state)
-        (draw-gasket m31 m23 p3 next-depth cx cy angle twist-factor scale-y line-state))))
+        (draw-gasket p1 m12 m31 next-depth cx cy angle twist-factor scale-y color-idx line-state)
+        (draw-gasket m12 p2 m23 next-depth cx cy angle twist-factor scale-y color-idx line-state)
+        (draw-gasket m31 m23 p3 next-depth cx cy angle twist-factor scale-y color-idx line-state))))
 
 (fn draw-transition [st duration current-idx]
   "Draws a horizontal curtain screen-wipe."
@@ -95,7 +95,7 @@
                        p3 {:x WIDTH :y 0}
                        lines-to-draw (math.floor (* (/ st 180) 729))
                        line-state {:total 0 :max lines-to-draw}]
-                   (draw-gasket p1 p2 p3 5 cx cy 0 0 1.0 line-state)))}
+                   (draw-gasket p1 p2 p3 5 cx cy 0 0 1.0 1 line-state)))}
         ;; Scene 2: Rotate around X-axis 3D pitching
         {:duration 180
          :draw (fn [st]
@@ -106,7 +106,7 @@
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}
                        scale-y (math.abs (math.cos (* st 0.03)))]
-                   (draw-gasket p1 p2 p3 5 cx cy 0 0 scale-y line-state)))}
+                   (draw-gasket p1 p2 p3 5 cx cy 0 0 scale-y 1 line-state)))}
         ;; Scene 3: Flat spin
         {:duration 360
          :draw (fn [st]
@@ -117,7 +117,7 @@
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}]
-                   (draw-gasket p1 p2 p3 5 cx cy angle 0 1.0 line-state)))}
+                   (draw-gasket p1 p2 p3 5 cx cy angle 0 1.0 1 line-state)))}
         ;; Scene 4: Twisting Gasket
         {:duration 360
          :draw (fn [st]
@@ -128,7 +128,45 @@
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}]
-                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 line-state)))}])
+                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 1 line-state)))}
+        ;; Scene 5: Copper Curtain Background Grid
+        {:duration 360
+         :draw (fn [st]
+                 (for [y 0 HEIGHT 2]
+                   (line 0 y WIDTH y 1))
+                 (let [cx (/ WIDTH 2)
+                       cy (/ HEIGHT 2)
+                       p1 {:x 0 :y 0}
+                       p2 {:x (/ WIDTH 2) :y HEIGHT}
+                       p3 {:x WIDTH :y 0}
+                       line-state {:total 0 :max nil}
+                       angle (* st (math.rad 0.5))]
+                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 0 line-state)))}
+        ;; Scene 4: Twisting Gasket (again)
+        {:duration 360
+         :draw (fn [st]
+                 (let [cx (/ WIDTH 2)
+                       cy (/ HEIGHT 2)
+                       angle (* (+ st 240) (math.rad 0.25))
+                       p1 {:x 0 :y 0}
+                       p2 {:x (/ WIDTH 2) :y HEIGHT}
+                       p3 {:x WIDTH :y 0}
+                       line-state {:total 0 :max nil}]
+                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 1 line-state)))}
+        ;; Scene 5: Copper Curtain Background Grid (again)
+        {:duration 360
+         :draw (fn [st]
+                 (for [y 0 HEIGHT 2]
+                   (line 0 y WIDTH y 1))
+                 (let [cx (/ WIDTH 2)
+                       cy (/ HEIGHT 2)
+                       p1 {:x 0 :y 0}
+                       p2 {:x (/ WIDTH 2) :y HEIGHT}
+                       p3 {:x WIDTH :y 0}
+                       line-state {:total 0 :max nil}
+                       angle (* st (math.rad 0.5))]
+                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 0 line-state)))}
+        ])
 
 (fn _G.BDR [y]
   "Raster interrupt for rotating palette, skip black."
