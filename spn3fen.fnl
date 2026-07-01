@@ -29,8 +29,8 @@
 
 (fn my-noise-spiral [centerx centery radius color]
   (let [spiral {:startradius (/ radius 10)
-                :lastx -999
-                :lasty -999}
+                :lastx nil
+                :lasty nil}
         radius-noise (math.random spiral.startradius)]
     (var current-noise radius-noise)
     (for [angle 0 (* 360 4) 10]
@@ -40,7 +40,7 @@
             radians (math.rad angle)
             x (+ centerx (* thisradius (math.cos radians)))
             y (+ centery (* thisradius (math.sin radians)))]
-        (when (< -999 spiral.lastx)
+        (when spiral.lastx
           (line x y spiral.lastx spiral.lasty color))
         (set spiral.startradius (+ spiral.startradius 0.2 (- 1 (custom-random))))
         (set spiral.lastx x)
