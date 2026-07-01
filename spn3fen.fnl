@@ -1,8 +1,8 @@
-;; title:   spn2fen
+;; title:   spn3fen
 ;; author:  jwatt@broken.watch
-;; desc:    Spiral noise 2 with fennel
-;; site:    website link
-;; license: GPL3
+;; desc:    Spiral noise 3 with fennel
+;; site:    jjwatt/play-tic80
+;; license: MIT
 ;; version: 0.1
 ;; script:  fennel
 ;; strict:  true
@@ -26,26 +26,6 @@
 
 (fn custom-random []
   (- 1 (math.pow (math.random) 5)))
-
-(lambda my-spiral2 [centerx
-                    centery
-                    radius
-                    ?color
-                    ?startradius
-                    ?step]
-  (let [spiral {:radius (or ?startradius (/ radius 10))
-                :lastx (- 1)
-                :lasty (- 1)}
-        color (or ?color 1)]
-    (for [angle 0 (* 360 (math.random 1 10)) (or ?step 8)]
-      (tset spiral :radius (+ spiral.radius 0.25))
-      (let [radians (math.rad angle)
-            x (+ centerx (* spiral.radius (math.cos radians)))
-            y (+ centery (* spiral.radius (math.sin radians)))]
-        (when (> spiral.lastx (- 1))
-          (line x y spiral.lastx spiral.lasty color))
-        (tset spiral :lastx x)
-        (tset spiral :lasty y)))))
 
 (fn my-noise-spiral [centerx centery radius color]
   (let [spiral {:startradius (/ radius 10)
