@@ -82,7 +82,7 @@
                        lines-to-draw (math.floor (* (/ st 180) 729))
                        line-state {:total 0 :max lines-to-draw}]
                    (draw-gasket p1 p2 p3 5 cx cy 0 0 1.0 line-state)))}
-        ;; Scene 2: Flat tabletop spin
+        ;; Scene 2: Flat spin
         {:duration 240
          :draw (fn [st]
                  (let [cx (/ WIDTH 2)
@@ -93,7 +93,7 @@
                        p3 {:x WIDTH :y HEIGHT}
                        line-state {:total 0 :max nil}]
                    (draw-gasket p1 p2 p3 5 cx cy angle 0 1.0 line-state)))}
-        ;; Scene 3: Rotate around X-axis 3D pitching
+        ;; Scene 3: Rotate around X-axis 3D pitching (don't know why there are trails)
         {:duration 240
          :draw (fn [st]
                  (let [cx (/ WIDTH 2)
@@ -115,6 +115,7 @@
                        p3 {:x WIDTH :y HEIGHT}
                        line-state {:total 0 :max nil}]
                    (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 line-state)))}])
+
 (fn _G.BDR [y]
   "Raster interrupt for rotating palette, skip black."
   ;; Fires 136 times per frame (once per scanline)
