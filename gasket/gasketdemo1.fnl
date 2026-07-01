@@ -165,8 +165,7 @@
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}
                        angle (* st (math.rad 0.5))]
-                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 0 line-state)))}
-        ])
+                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 0 line-state)))}])
 
 (fn _G.BDR [y]
   "Raster interrupt for rotating palette, skip black."
