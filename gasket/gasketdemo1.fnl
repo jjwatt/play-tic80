@@ -36,8 +36,8 @@
             rx1 (+ (- (* tx1 cos-a1) (* ty1 sin-a1)) cx)
             ry1 (+ (- (* tx1 sin-a1) (* ty1 cos-a1)) cy)
             sy1-final (+ (* (- ry1 cy) scale-y) cy)
-            sx1 (+ (- rx1) WIDTH)
-            sy1 (+ (- ry1) HEIGHT)
+            sx1 rx1
+            sy1 sy1-final
             tx2 (- p2.x cx)
             ty2 (- p2.y cy)
             dist2 (math.sqrt (+ (* tx2 tx2) (* ty2 ty2)))
@@ -47,8 +47,8 @@
             rx2 (+ (- (* tx2 cos-a2) (* ty2 sin-a2)) cx)
             ry2 (+ (- (* tx2 sin-a2) (* ty2 cos-a2)) cy)
             sy2-final (+ (* (- ry2 cy) scale-y) cy)
-            sx2 (+ (- rx2) WIDTH)
-            sy2 (+ (- sy2-final) HEIGHT)]
+            sx2 rx2
+            sy2 sy2-final]
         (line sx1 sy1 sx2 sy2 1))))
 
 (fn draw-gasket [p1 p2 p3 depth cx cy angle twist-factor scale-y line-state]
