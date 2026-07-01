@@ -107,7 +107,7 @@
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}]
                    (draw-gasket p1 p2 p3 5 cx cy angle 0 1.0 line-state)))}
-        ;; Scene 3: Rotate around X-axis 3D pitching (don't know why there are trails)
+        ;; Scene 3: Rotate around X-axis 3D pitching
         {:duration 240
          :draw (fn [st]
                  (let [cx (/ WIDTH 2)
