@@ -18,22 +18,47 @@
 (local VRAM_ADDR 0x0000)
 (local OFFSCREEN_ADDR 0x8000) ;; Start of free RAM
 
+(fn norm [value low high]
+  "Normalize value to between 0.0 and 1.0"
+  (/ (- value low) (- high low)))
+(fn lerp [low high amt]
+  "Linear interpolation of amt (normalized) to low-high"
+  (+ low (* amt (- high low))))
+(fn mapvalue [value low1 high1 low2 high2]
+  "Map from one set of values to the other"
+  (let [n (norm value low1 high1)]
+    (lerp low2 high2 n)))
+
+;; For double-buffering
 (fn save-buffer []
+  "Save offscreen buffer to vram."
   (memcpy OFFSCREEN_ADDR VRAM_ADDR SCREEN_SIZE))
 
 (fn restore-buffer []
+  "Restore vram to offscreen buffer."
   (memcpy VRAM_ADDR OFFSCREEN_ADDR SCREEN_SIZE))
 
 (fn custom-random []
   (- 1 (math.pow (math.random) 5)))
+
+(var last-time (time))
+(var current-fps 60)
+(fn draw-fps []
+  (let [now (time)
+        delta (- now last-time)]
+    (when (> delta 0)
+      (let [raw-fps (/ 1000 delta)]
+        (set current-fps (lerp current-fps raw-fps 0.05))))
+    (set last-time now)
+    (print (string.format "FPS: %.1f" current-fps) 0 0 14 true)))
 
 (fn my-noise-spiral [centerx centery radius color]
   (let [startradius (/ radius 10)
         radius-noise (math.random startradius)
         first-radius (+ startradius (* radius-noise (- 1 (custom-random))))
         spiral {:startradius (+ startradius 0.2 (- 1 (custom-random)))
-                :lastx (+ centerx first-radius)
-                :lasty centery}]
+                :lastx (+ centerx first-radius) ;; cos(0) = 1
+                :lasty centery}]                ;; sin(0) = 0
     (var current-noise radius-noise)
     (for [angle 10 (* 360 4) 10]
       (set current-noise (+ current-noise 0.08))
@@ -53,7 +78,7 @@
     (cls 1)
     (my-noise-spiral center-x center-y radius 4))
   (save-buffer)
-  ;; (circb center-x center-y radius 5)
+  (draw-fps)
   (set myt (+ myt 1)))
 
 
