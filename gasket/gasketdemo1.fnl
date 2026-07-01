@@ -22,7 +22,7 @@
         (poke4 (+ i (* 0x3FF0 2)) i))
       (poke4 (+ c0 (* 0x3FF0 2)) c1)))
 
-(fn draw-rotated-line [p1 p2 cx cy angle twist-factor line-state]
+(fn draw-rotated-line [p1 p2 cx cy angle twist-factor scale-y line-state]
   "Rotates two points and draws a line between them in one go."
   (set line-state.total (+ line-state.total 1))
 
@@ -35,6 +35,7 @@
             sin-a1 (math.sin angle1)
             rx1 (+ (- (* tx1 cos-a1) (* ty1 sin-a1)) cx)
             ry1 (+ (- (* tx1 sin-a1) (* ty1 cos-a1)) cy)
+            sy1-final (+ (* (- ry1 cy) scale-y) cy)
             sx1 (+ (- rx1) WIDTH)
             sy1 (+ (- ry1) HEIGHT)
             tx2 (- p2.x cx)
@@ -45,26 +46,27 @@
             sin-a2 (math.sin angle2)
             rx2 (+ (- (* tx2 cos-a2) (* ty2 sin-a2)) cx)
             ry2 (+ (- (* tx2 sin-a2) (* ty2 cos-a2)) cy)
+            sy2-final (+ (* (- ry2 cy) scale-y) cy)
             sx2 (+ (- rx2) WIDTH)
-            sy2 (+ (- ry2) HEIGHT)]
+            sy2 (+ (- sy2-final) HEIGHT)]
         (line sx1 sy1 sx2 sy2 1))))
 
-(fn draw-gasket [p1 p2 p3 depth cx cy angle twist-factor line-state]
+(fn draw-gasket [p1 p2 p3 depth cx cy angle twist-factor scale-y line-state]
   "Recursively draw the triangle outlines."
   (if (= depth 0)
       ;; Base case: draw outer edges of this triangle segment.
       (do
-        (draw-rotated-line p1 p2 cx cy angle twist-factor line-state)
-        (draw-rotated-line p2 p3 cx cy angle twist-factor line-state)
-        (draw-rotated-line p3 p1 cx cy angle twist-factor line-state))
+        (draw-rotated-line p1 p2 cx cy angle twist-factor scale-y line-state)
+        (draw-rotated-line p2 p3 cx cy angle twist-factor scale-y line-state)
+        (draw-rotated-line p3 p1 cx cy angle twist-factor scale-y line-state))
       ;; Recursive case: find the midpoints and subdivide into 3 smaller triangles.
       (let [m12 {:x (/ (+ p1.x p2.x) 2) :y (/ (+ p1.y p2.y) 2)}
             m23 {:x (/ (+ p2.x p3.x) 2) :y (/ (+ p2.y p3.y) 2)}
             m31 {:x (/ (+ p3.x p1.x) 2) :y (/ (+ p3.y p1.y) 2)}
             next-depth (- depth 1)]
-        (draw-gasket p1 m12 m31 next-depth cx cy angle twist-factor line-state)
-        (draw-gasket m12 p2 m23 next-depth cx cy angle twist-factor line-state)
-        (draw-gasket m31 m23 p3 next-depth cx cy angle twist-factor line-state))))
+        (draw-gasket p1 m12 m31 next-depth cx cy angle twist-factor scale-y line-state)
+        (draw-gasket m12 p2 m23 next-depth cx cy angle twist-factor scale-y line-state)
+        (draw-gasket m31 m23 p3 next-depth cx cy angle twist-factor scale-y line-state))))
 
 (local scenes
        [
@@ -79,19 +81,30 @@
                        p3 {:x WIDTH :y HEIGHT}
                        lines-to-draw (math.floor (* (/ st 180) 729))
                        line-state {:total 0 :max lines-to-draw}]
-                   (draw-gasket p1 p2 p3 5 cx cy 0 0 line-state)))}
-        ;; Scene 2: Standard rotation around origin.
+                   (draw-gasket p1 p2 p3 5 cx cy 0 0 1.0 line-state)))}
+        ;; Scene 2: Flat tabletop spin
         {:duration 240
          :draw (fn [st]
                  (let [cx (/ WIDTH 2)
                        cy (/ HEIGHT 2)
-                       angle (* st (math.rad 0.5))
+                       angle (* st (math.rad 0.75))
                        p1 {:x 0 :y HEIGHT}
                        p2 {:x (/ WIDTH 2) :y 0}
                        p3 {:x WIDTH :y HEIGHT}
                        line-state {:total 0 :max nil}]
-                   (draw-gasket p1 p2 p3 5 cx cy angle 0 line-state)))}
-        ;; Scene 3: Twisting Gasket
+                   (draw-gasket p1 p2 p3 5 cx cy angle 0 1.0 line-state)))}
+        ;; Scene 3: Rotate around X-axis 3D pitching
+        {:duration 240
+         :draw (fn [st]
+                 (let [cx (/ WIDTH 2)
+                       cy (/ HEIGHT 2)
+                       p1 {:x 0 :y HEIGHT}
+                       p2 {:x (/ WIDTH 2) :y 0}
+                       p3 {:x WIDTH :y HEIGHT}
+                       line-state {:total 0 :max nil}
+                       scale-y (math.abs (math.cos (* st 0.03)))]
+                   (draw-gasket p1 p2 p3 5 cx cy 0 0 scale-y line-state)))}
+        ;; Scene 4: Twisting Gasket
         {:duration 360
          :draw (fn [st]
                  (let [cx (/ WIDTH 2)
@@ -101,7 +114,7 @@
                        p2 {:x (/ WIDTH 2) :y 0}
                        p3 {:x WIDTH :y HEIGHT}
                        line-state {:total 0 :max nil}]
-                   (draw-gasket p1 p2 p3 5 cx cy angle 1 line-state)))}])
+                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 line-state)))}])
 (fn _G.BDR [y]
   "Raster interrupt for rotating palette, skip black."
   ;; Fires 136 times per frame (once per scanline)
@@ -114,7 +127,7 @@
     (pal 1 num)))
 
 (fn _G.TIC []
-  (cls 0)
+  (rect 0 0 WIDTH HEIGHT 0)
 
   (let [current-scene (. scenes scene-idx)]
     (if current-scene
