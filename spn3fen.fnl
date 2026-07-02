@@ -29,6 +29,89 @@
   (let [n (norm value low1 high1)]
     (lerp low2 high2 n)))
 
+;;;; Perlin Noise
+(local p {151 160 137 91 90 15 131 13 201 95 96 53 194 233 7 225 140 36 103 30 69 142 8 99
+    37 240 21 10 23 190 6 148 247 120 234 75 0 26 197 62 150 252 175 211 193 66 54
+    194 148 153 141 66 128 143 219 84 188 205 116 68 14 142 217 3 240 69 251 88 14
+    221 141 126 155 90 135 142 238 251 202 69 114 83 75 37 175 190 148 154 166 133
+    182 73 158 162 190 40 165 162 81 37 95 145 51 28 40 211 191 126 163 254 103 240
+    155 200 103 80 63 94 251 189 47 99 139 111 165 225 29 141 75 123 178 160 209
+    215 152 148 228 73 34 166 220 103 28 77 208 187 204 181 190 208 135 153 151 154
+    224 195 160 94 258 150 261 91 241 180 188 107 176 146 84 204 115 227 159 166 211
+    254 196 177 117 175 212 31 90 75 237 171 232 232 111 183 115 200 81 179 152 165
+    26 183 161 247 40 216 163 222 46 141 75 215 92 203 143 117 104 136 173 30 95
+    124 116 134 153 60 119 252 65 79 156 227 169 150})
+
+(fn fade [t]
+  (* t t t (+ (* t (- (* t 6) 15)) 10)))
+
+(fn perlin-noise [x y]
+  (let [X (% (math.abs (math.floor x)) 256)
+        Y (% (math.abs (math.floor y)) 256)
+        xf (- x (math.floor x))
+        yf (- y (math.floor y))
+        u (fade xf)
+        v (fade yf)
+        idx-X1 (+ 1 X)
+        idx-X2 (+ 1 (% (+ X 1) 256))
+        val-X1 (or (. p idx-X1) 0)
+        val-X2 (or (. p idx-X2) 0)
+        A (% (+ val-X1 Y) 256)
+        B (% (+ val-X2 Y) 256)
+        aa (or (. p (+ 1 A)) 0)
+        ab (or (. p (+ 1 (% (+ A 1) 256))) 0)
+        ba (or (. p (+ 1 B)) 0)
+        bb (or (. p (+ 1 (% (+ B 1) 256))) 0)]
+    (- (/ (lerp (lerp aa ab u)
+                (lerp ba bb u)
+                v)
+          128)
+       1)))
+
+(fn perlin-noise-3d [x y z]
+  (let [X (% (math.abs (math.floor x)) 256)
+        Y (% (math.abs (math.floor y)) 256)
+        Z (% (math.abs (math.floor z)) 256)
+
+        xf (- x (math.floor x))
+        yf (- y (math.floor y))
+        zf (- z (math.floor z))
+
+        u (fade xf)
+        v (fade yf)
+        w (fade zf)
+
+        ;; X-Y hashing
+        A (% (+ (or (. p (+ 1 X)) 0) Y) 256)
+        B (% (+ (or (. p (+ 1 (% (+ X 1) 256))) 0) Y) 256)
+
+        ;; 3D hashing: combine with Z layer
+        AA (% (+ (or (. p (+ 1 A)) 0) Z) 256)
+        AB (% (+ (or (. p (+ 1 (% (+ A 1) 256))) 0) Z) 256)
+        BA (% (+ (or (. p (+ 1 B)) 0) Z) 256)
+        BB (% (+ (or (. p (+ 1 (% (+ B 1) 256))) 0) Z) 256)
+
+        ;; Retrieve all 8 corner values of the 3D cube cell
+        aaa (or (. p (+ 1 AA)) 0)
+        aab (or (. p (+ 1 (% (+ AA 1) 256))) 0)
+        aba (or (. p (+ 1 AB)) 0)
+        abb (or (. p (+ 1 (% (+ AB 1) 256))) 0)
+        baa (or (. p (+ 1 BA)) 0)
+        bab (or (. p (+ 1 (% (+ BA 1) 256))) 0)
+        bba (or (. p (+ 1 BB)) 0)
+        bbb (or (. p (+ 1 (% (+ BB 1) 256))) 0)]
+
+    ;; Trilinear interpolation across X, Y, and Z axes
+    (- (/ (lerp (lerp (lerp aaa baa u)
+                      (lerp aba bba u)
+                      v)
+                (lerp (lerp aab bab u)
+                      (lerp abb bbb u)
+                      v)
+                w)
+          128)
+       1)))
+
 ;; For double-buffering
 (fn save-buffer []
   "Save offscreen buffer to vram."
@@ -54,21 +137,25 @@
 
 (fn my-noise-spiral [centerx centery radius color]
   (let [startradius (/ radius 10)
-        radius-noise (math.random startradius)
-        first-radius (+ startradius (* radius-noise (- 1 (custom-random))))
-        spiral {:startradius (+ startradius 0.2 (- 1 (custom-random)))
+        noise-scale 0.8
+        time-step (* myt 0.12)
+        first-noise (perlin-noise noise-scale time-step)
+        first-radius (+ startradius (* first-noise 6))
+        spiral {:startradius startradius
                 :lastx (+ centerx first-radius) ;; cos(0) = 1
                 :lasty centery}]                ;; sin(0) = 0
-    (var current-noise radius-noise)
-    (for [angle 10 (* 360 4) 10]
-      (set current-noise (+ current-noise 0.08))
-      (let [thisradius (+ spiral.startradius
-                          (* current-noise (- 1 (custom-random))))
-            radians (math.rad angle)
-            x (+ centerx (* thisradius (math.cos radians)))
-            y (+ centery (* thisradius (math.sin radians)))]
+    (for [angle 5 (* 360 4) 5]
+      (let [radians (math.rad angle)
+            cos-r (math.cos radians)
+            sin-r (math.sin radians)
+            spatial-scale (* noise-scale (+ 1 (* angle 0.002)))
+            n-val (perlin-noise (* cos-r spatial-scale)
+                                (+ (* sin-r spatial-scale) time-step))
+            base-growth (* 0.06 angle)
+            thisradius (+ spiral.startradius base-growth (* n-val 6))
+            x (+ centerx (* thisradius cos-r))
+            y (+ centery (* thisradius sin-r))]
         (line x y spiral.lastx spiral.lasty color)
-        (set spiral.startradius (+ spiral.startradius 0.2 (- 1 (custom-random))))
         (set spiral.lastx x)
         (set spiral.lasty y)))))
 
@@ -110,4 +197,3 @@
 ;; <PALETTE>
 ;; 000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57
 ;; </PALETTE>
-
