@@ -137,37 +137,25 @@
 
 (fn my-noise-spiral [centerx centery radius color]
   (let [startradius (/ radius 10)
-        ;; Controls how tightly packed the noise ripples are along the spiral string
-        noise-frequency 0.05
-        ;; Controls how fast the entire spiral morphs and churns
-        animation-speed 0.10
-        time-step (* myt animation-speed)
-
-        ;; Evaluate the first point at angle = 0 directly
-        first-noise (perlin-noise 0 time-step)
-        first-radius (+ startradius (* first-noise 12))
-
+        noise-scale 0.8
+        time-step (* myt 0.12)
+        first-noise (perlin-noise-3d noise-scale time-step 10)
+        first-radius (+ startradius (* first-noise 6))
         spiral {:startradius startradius
-                :lastx (+ centerx first-radius)
-                :lasty centery}]
-
-    (for [angle 10 (* 360 4) 10]
+                :lastx (+ centerx first-radius) ;; cos(0) = 1
+                :lasty centery}]                ;; sin(0) = 0
+    (for [angle 10 (* 360 3) 10]
       (let [radians (math.rad angle)
             cos-r (math.cos radians)
             sin-r (math.sin radians)
-
-            ;; Map noise directly to Polar Coordinates (Angle) and Time (myt).
-            ;; This ensures the whole spiral mutates simultaneously in place.
-            n-val (perlin-noise (* angle noise-frequency) time-step)
-
+            spatial-scale (* noise-scale (+ 1 (* angle 0.002)))
+            n-val (perlin-noise (* cos-r spatial-scale)
+                                (+ (* sin-r spatial-scale) time-step))
             base-growth (* 0.06 angle)
-            thisradius (+ spiral.startradius base-growth (* n-val 12))
-
+            thisradius (+ spiral.startradius base-growth (* n-val 6))
             x (+ centerx (* thisradius cos-r))
             y (+ centery (* thisradius sin-r))]
-
         (line x y spiral.lastx spiral.lasty color)
-
         (set spiral.lastx x)
         (set spiral.lasty y)))))
 
