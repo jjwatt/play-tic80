@@ -135,16 +135,16 @@
     (set last-time now)
     (print (string.format "FPS: %.1f" current-fps) 0 0 14 true)))
 
-(fn my-noise-spiral [centerx centery radius color]
+(fn my-noise-spiral [centerx centery radius color intensity]
   (let [startradius (/ radius 10)
         noise-scale 0.9
         time-step (* myt 0.12)
         first-noise (perlin-noise-3d noise-scale time-step 0)
-        first-radius (+ startradius (* first-noise 6))
+        first-radius (+ startradius (* first-noise 6 intensity))
         spiral {:startradius startradius
                 :lastx (+ centerx first-radius) ;; cos(0) = 1
                 :lasty centery}]                ;; sin(0) = 0
-    (for [angle 5 (* 360 4) 5]
+    (for [angle 5 (* 360 3) 5]
       (let [radians (math.rad angle)
             cos-r (math.cos radians)
             sin-r (math.sin radians)
@@ -152,16 +152,23 @@
             base-growth (* 0.06 angle)
             n-val (perlin-noise-3d (* cos-r spatial-scale)
                                 (+ (* sin-r spatial-scale) time-step) angle)
-            thisradius (+ spiral.startradius base-growth (* n-val 6))
+            thisradius (+ spiral.startradius base-growth (* n-val 6 intensity))
             x (+ centerx (* thisradius cos-r))
             y (+ centery (* thisradius sin-r))]
         (line x y spiral.lastx spiral.lasty color)
         (set spiral.lastx x)
         (set spiral.lasty y)))))
 
+(var spiral-intensity 0)
+
 (fn _G.TIC []
   (cls 1)
-  (my-noise-spiral center-x center-y radius 4)
+  (my-noise-spiral center-x center-y radius 4 spiral-intensity)
+  (when (> myt 30)
+    (set spiral-intensity (+ spiral-intensity 0.005))
+    ;; Clamp so it doesn't exceed
+    (when (> spiral-intensity 1)
+      (set spiral-intensity 1)))
   (draw-fps)
   (set myt (+ myt 1)))
 
