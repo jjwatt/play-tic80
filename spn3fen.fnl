@@ -13,10 +13,6 @@
 (local num-points 150)
 (local WIDTH 240)
 (local HEIGHT 136)
-;; WIDTH * HEIGHT / 2 bytes (4-bpp)
-(local SCREEN_SIZE (/ (* WIDTH HEIGHT) 2))
-(local VRAM_ADDR 0x0000)
-(local OFFSCREEN_ADDR 0x8000) ;; Start of free RAM
 
 (fn norm [value low high]
   "Normalize value to between 0.0 and 1.0"
@@ -111,15 +107,6 @@
                 w)
           128)
        1)))
-
-;; For double-buffering
-(fn save-buffer []
-  "Save offscreen buffer to vram."
-  (memcpy OFFSCREEN_ADDR VRAM_ADDR SCREEN_SIZE))
-
-(fn restore-buffer []
-  "Restore vram to offscreen buffer."
-  (memcpy VRAM_ADDR OFFSCREEN_ADDR SCREEN_SIZE))
 
 (fn custom-random []
   (- 1 (math.pow (math.random) 5)))
