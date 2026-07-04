@@ -48,29 +48,22 @@
           (table.remove particles i)))))
 
 (fn draw-particles []
-  "Renders each particle as a pixel."
+  "Renders each particle, dimming its color index as its life expires."
   (each [_ p (ipairs particles)]
-    ;; Dim the color slightly near the end of life if desired,
-    ;; or just draw the raw particle color.
-    (pix p.x p.y p.color)))
-
-(fn simulate-trails []
-  "Demoscene trick: Loops through screen VRAM (0x0000 to 0x3FC0)
-   and safely fades pairs of 4-bit pixels without color bleeding."
-  (for [addr 0x0000 0x3FC0]
-    (let [byte (peek addr)]
-      (if (> byte 0)
-          (let [;; Extract pixels (high and low 4-bit nibbles)
-                p1 (rshift byte 4)          ; Left pixel
-                p2 (band byte 0x0F)     ; Right pixel
-
-                ;; Decrement color indices toward 0 (black)
-                p1-new (math.max 0 (- p1 1))
-                p2-new (math.max 0 (- p2 1))
-
-                ;; Pack them back into a single 8-bit byte
-                new-byte (bor (lshift p1-new 4) p2-new)]
-            (poke addr new-byte))))))
+    (let [;; Calculate a lifetime ratio between 0.0 and 1.0
+          ;; (Assuming a max life of ~70 based on spawn-firework)
+          life-ratio (/ p.life 70)
+          
+          ;; Shift the color down if life is running low.
+          ;; If ratio is high, keep the bright original color.
+          ;; If ratio is low, drop the color index toward darker values.
+          final-color (if (< life-ratio 0.3)
+                          (math.max 1 (math.min p.color 2))  ; Fade to dark blue/dark red
+                          (< life-ratio 0.6)
+                          (math.max 1 (- p.color 2))         ; Mid-life dimming
+                          p.color)]                          ; Fresh and bright
+      
+      (pix p.x p.y final-color))))
 
 (fn simulate-crt-trails []
   "Fades out alternating rows and instantly clears the scanline rows
@@ -94,6 +87,8 @@
 
 ;; Main TIC-80 Loop
 (fn _G.TIC []
+  ;; Disable mouse cursor
+  (poke 0x3FFB 0)  
   (simulate-crt-trails)
 
   ;; Randomly launch new fireworks
