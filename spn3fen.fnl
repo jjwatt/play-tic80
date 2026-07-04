@@ -141,8 +141,10 @@
                                 (+ (* sin-r spatial-scale) time-step) angle)
             thisradius (+ spiral.startradius base-growth (* n-val 6 intensity))
             x (+ centerx (* thisradius cos-r))
-            y (+ centery (* thisradius sin-r))]
-        (line x y spiral.lastx spiral.lasty color)
+            y (+ centery (* thisradius sin-r))
+            color-wave (% (+ (/ angle 30) (/ myt 4)) 6)
+            dynamic-color (+ 2 (math.floor color-wave))]
+        (line x y spiral.lastx spiral.lasty dynamic-color)
         (set spiral.lastx x)
         (set spiral.lasty y)))))
 
