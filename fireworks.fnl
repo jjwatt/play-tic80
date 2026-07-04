@@ -15,6 +15,26 @@
 ;; Particle pool
 (local particles [])
 
+(var text-exploded? false)
+(var frame-count 0)
+
+(fn explode-text [str start-x start-y text-color]
+  "Scans the text directly from the active frame buffer."
+  ;; Scan the exact 100-pixel wide bounding box where the text lives
+  (for [y start-y (+ start-y 10)]
+    (for [x start-x (+ start-x 100)]
+      (if (= (pix x y) text-color)
+          (let [center-x 120
+                dx (- x center-x)
+                ;; Radial blast outward from center
+                vx (+ (* dx 0.06) (* (- (math.random) 0.5) 0.4))
+                vy (- (* (math.random) 1.6) 0.4)]
+            (table.insert particles {: x 
+                                     : y 
+                                     : vx 
+                                     : vy 
+                                     :life (+ 45 (math.random 35)) 
+                                     :color text-color}))))))
 (fn spawn-firework [cx cy color]
   "Spawns a ring of particles at a center point with random velocities."
   (let [count 60]
@@ -88,14 +108,26 @@
 ;; Main TIC-80 Loop
 (fn _G.TIC []
   ;; Disable mouse cursor
-  (poke 0x3FFB 0)  
+  (poke 0x3FFB 0)
+  (set frame-count (+ frame-count 1))
+
   (simulate-crt-trails)
 
-  ;; Randomly launch new fireworks
-  (if (= (math.random 1 45) 1)
-      (spawn-firework (math.random 40 200)
-                      (math.random 30 70)
-                      (math.random 1 15)))
+  (if (not text-exploded?)
+      (do
+        (print "Happy July 4th" 78 60 12 true 1)
+        (if (< frame-count 60)
+            ;; Phase 1: Draw the text normally for 60 frames
+            (print "Happy July 4th" 78 60 12 true 1)
+            
+            ;; Phase 2: Hit frame 60, explode it once, flip the switch
+            (do
+              (explode-text "Happy July 4th" 60 60 12)
+              (set text-exploded? true))))
+      
+      ;; Phase 3: Text has shattered, run standard firework ambient loop
+      (if (= (math.random 1 30) 1)
+          (spawn-firework (math.random 40 200) (math.random 20 60) (math.random 1 15))))
 
   (update-particles)
   (draw-particles))
