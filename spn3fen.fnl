@@ -137,21 +137,21 @@
 
 (fn my-noise-spiral [centerx centery radius color]
   (let [startradius (/ radius 10)
-        noise-scale 0.8
+        noise-scale 0.9
         time-step (* myt 0.12)
-        first-noise (perlin-noise-3d noise-scale time-step 10)
+        first-noise (perlin-noise-3d noise-scale time-step 0)
         first-radius (+ startradius (* first-noise 6))
         spiral {:startradius startradius
                 :lastx (+ centerx first-radius) ;; cos(0) = 1
                 :lasty centery}]                ;; sin(0) = 0
-    (for [angle 10 (* 360 3) 10]
+    (for [angle 5 (* 360 4) 5]
       (let [radians (math.rad angle)
             cos-r (math.cos radians)
             sin-r (math.sin radians)
             spatial-scale (* noise-scale (+ 1 (* angle 0.002)))
-            n-val (perlin-noise (* cos-r spatial-scale)
-                                (+ (* sin-r spatial-scale) time-step))
             base-growth (* 0.06 angle)
+            n-val (perlin-noise-3d (* cos-r spatial-scale)
+                                (+ (* sin-r spatial-scale) time-step) angle)
             thisradius (+ spiral.startradius base-growth (* n-val 6))
             x (+ centerx (* thisradius cos-r))
             y (+ centery (* thisradius sin-r))]
@@ -160,11 +160,8 @@
         (set spiral.lasty y)))))
 
 (fn _G.TIC []
-  (restore-buffer)
-  (when (= 0 (% myt 4))
-    (cls 1)
-    (my-noise-spiral center-x center-y radius 4))
-  (save-buffer)
+  (cls 1)
+  (my-noise-spiral center-x center-y radius 4)
   (draw-fps)
   (set myt (+ myt 1)))
 
