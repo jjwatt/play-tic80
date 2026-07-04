@@ -3,7 +3,7 @@
 ;; desc:    Spiral noise 3 with fennel
 ;; site:    jjwatt/play-tic80
 ;; license: GPL3
-;; version: 0.5
+;; version: 0.7
 ;; script:  fennel
 ;; strict:  true
 (var myt 0)
@@ -122,7 +122,7 @@
     (set last-time now)
     (print (string.format "FPS: %.1f" current-fps) 0 0 14 true)))
 
-(fn my-noise-spiral [centerx centery radius color intensity]
+(fn my-noise-spiral [centerx centery radius color intensity rotations]
   (let [startradius (/ radius 10)
         noise-scale 0.9
         time-step (* myt 0.12)
@@ -131,7 +131,7 @@
         spiral {:startradius startradius
                 :lastx (+ centerx first-radius) ;; cos(0) = 1
                 :lasty centery}]                ;; sin(0) = 0
-    (for [angle 5 (* 360 3) 5]
+    (for [angle 5 (* 360 rotations) 5]
       (let [radians (math.rad angle)
             cos-r (math.cos radians)
             sin-r (math.sin radians)
@@ -155,8 +155,11 @@
   (let [spiral-intensity (if (< myt 30) 0
                              (let [active-time (- myt 60)
                                    sine-wave (math.sin (- (* active-time 0.02) 1.5708))]
-                               (/ (+ sine-wave 1) 2)))]
-    (my-noise-spiral center-x center-y radius 4 spiral-intensity))
+                               (/ (+ sine-wave 1) 2)))
+        growth-sine (math.sin (- (* myt 0.015) 1.5708))
+        normalized-growth (/ (+ growth-sine 1) 2)
+        current-rotations (+ 2 (* normalized-growth 4))]
+    (my-noise-spiral center-x center-y radius 4 spiral-intensity current-rotations))
   (draw-fps)
   (set myt (+ myt 1)))
 
