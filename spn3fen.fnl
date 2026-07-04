@@ -2,8 +2,8 @@
 ;; author:  jwatt@broken.watch
 ;; desc:    Spiral noise 3 with fennel
 ;; site:    jjwatt/play-tic80
-;; license: MIT
-;; version: 0.1
+;; license: GPL3
+;; version: 0.5
 ;; script:  fennel
 ;; strict:  true
 (var myt 0)
