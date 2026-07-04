@@ -163,12 +163,11 @@
 
 (fn _G.TIC []
   (cls 1)
-  (my-noise-spiral center-x center-y radius 4 spiral-intensity)
-  (when (> myt 30)
-    (set spiral-intensity (+ spiral-intensity 0.005))
-    ;; Clamp so it doesn't exceed
-    (when (> spiral-intensity 1)
-      (set spiral-intensity 1)))
+  (let [spiral-intensity (if (< myt 30) 0
+                             (let [active-time (- myt 60)
+                                   sine-wave (math.sin (- (* active-time 0.02) 1.5708))]
+                               (/ (+ sine-wave 1) 2)))]
+    (my-noise-spiral center-x center-y radius 4 spiral-intensity))
   (draw-fps)
   (set myt (+ myt 1)))
 
