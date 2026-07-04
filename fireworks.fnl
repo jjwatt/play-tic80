@@ -23,11 +23,11 @@
             speed (+ 1 (math.random))
             vx (* (math.cos angle) speed)
             vy (* (math.sin angle) speed)]
-        (table.insert particles {:x cx 
-                                 :y cy 
-                                 :vx vx 
-                                 :vy vy 
-                                 :life (+ 40 (math.random 30)) 
+        (table.insert particles {:x cx
+                                 :y cy
+                                 :vx vx
+                                 :vy vy
+                                 :life (+ 40 (math.random 30))
                                  :color color})))))
 
 (fn update-particles []
@@ -40,7 +40,7 @@
       (set p.vx (* p.vx friction))
       (set p.vy (* p.vy friction))
       (set p.life (- p.life 1))
-      
+
       ;; Remove if life expires or goes off-screen
       (if (or (<= p.life 0)
               (< p.x 0) (> p.x screen-width)
@@ -55,7 +55,7 @@
     (pix p.x p.y p.color)))
 
 (fn simulate-trails []
-  "Demoscene trick: Loops through screen VRAM (0x0000 to 0x3FC0) 
+  "Demoscene trick: Loops through screen VRAM (0x0000 to 0x3FC0)
    and safely fades pairs of 4-bit pixels without color bleeding."
   (for [addr 0x0000 0x3FC0]
     (let [byte (peek addr)]
@@ -63,30 +63,43 @@
           (let [;; Extract pixels (high and low 4-bit nibbles)
                 p1 (rshift byte 4)          ; Left pixel
                 p2 (band byte 0x0F)     ; Right pixel
-                
+
                 ;; Decrement color indices toward 0 (black)
                 p1-new (math.max 0 (- p1 1))
                 p2-new (math.max 0 (- p2 1))
-                
+
                 ;; Pack them back into a single 8-bit byte
                 new-byte (bor (lshift p1-new 4) p2-new)]
             (poke addr new-byte))))))
+
+(fn simulate-crt-trails []
+  "Fades out alternating rows and instantly clears the scanline rows
+   to prevent permanent pixel artifacts."
+  (for [addr 0x0000 0x3FC0]
+    (if (< (% addr 240) 120)
+        (let [byte (peek addr)]
+          (if (> byte 0)
+              (let [p1 (rshift byte 4)
+                    p2 (band byte 0x0F)
+
+                    p1-new (math.max 0 (- p1 1))
+                    p2-new (math.max 0 (- p2 1))
+
+                    new-byte (bor (lshift p1-new 4) p2-new)]
+                (poke addr new-byte))))
+        (poke addr 0))))
 
 ;; Initialize with a couple of active fireworks
 (spawn-firework 120 40 11)
 
 ;; Main TIC-80 Loop
 (fn _G.TIC []
-  ;; Option A: Crisp clean background
-  ;; (cls 0)
-  
-  ;; Option B: Uncomment line below and comment out (cls 0) for demoscene trails!
-  (simulate-trails)
+  (simulate-crt-trails)
 
   ;; Randomly launch new fireworks
   (if (= (math.random 1 45) 1)
-      (spawn-firework (math.random 40 200) 
-                      (math.random 30 70) 
+      (spawn-firework (math.random 40 200)
+                      (math.random 30 70)
                       (math.random 1 15)))
 
   (update-particles)
@@ -120,4 +133,3 @@
 ;; <PALETTE>
 ;; 000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57
 ;; </PALETTE>
-
