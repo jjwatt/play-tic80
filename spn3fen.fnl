@@ -128,10 +128,8 @@
           (if (< 0 byte)
               (let [p1 (rshift byte 4)
                     p2 (band byte 0x0F)
-
                     p1-new (math.max 0 (- p1 1))
                     p2-new (math.max 0 (- p2 1))
-
                     new-byte (bor (lshift p1-new 4) p2-new)]
                 (poke addr new-byte))))
         (poke addr 0))))
@@ -149,7 +147,7 @@
                   bg-color (. bg-palette (+ 1 (math.floor color-wave)))]
               (pix x y bg-color))))))))
 
-(fn my-noise-spiral [centerx centery radius color intensity rotations]
+(fn my-noise-spiral [centerx centery radius intensity rotations]
   (let [startradius (/ radius 10)
         noise-scale 0.9
         time-step (* myt 0.12)
@@ -187,9 +185,8 @@
                                (/ (+ sine-wave 1) 2)))
         growth-sine (math.sin (- (* myt 0.015) 1.5708))
         normalized-growth (/ (+ growth-sine 1) 2)
-        current-rotations (+ 2 (* normalized-growth 4))
-        color 4]
-    (my-noise-spiral center-x center-y radius color spiral-intensity current-rotations))
+        current-rotations (+ 2 (* normalized-growth 4))]
+    (my-noise-spiral center-x center-y radius spiral-intensity current-rotations))
   ;; (draw-fps)
   (set myt (+ myt 1)))
 
