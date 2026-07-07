@@ -139,6 +139,17 @@
                 (poke addr new-byte))))
         (poke addr 0))))
 
+(fn draw-ambient-background []
+  "Draws a faint shifting starfield grid."
+  (let [time-step (* myt 0.05)
+        bg-scale 0.10]
+    (for [y 0 HEIGHT 8]
+      (for [x 0 WIDTH 8]
+        (let [n-val (perlin-noise (* x bg-scale) (+ (* y bg-scale) time-step))]
+          (when (< 0.5 n-val)
+            (let [bg-color (if (< 0.7 n-val) 12 1)]
+              (pix x y bg-color))))))))
+
 (fn my-noise-spiral [centerx centery radius color intensity rotations]
   (let [startradius (/ radius 10)
         noise-scale 0.9
@@ -170,14 +181,16 @@
 (fn _G.TIC []
   ;; (cls 1)
   (simulate-crt-trails)
+  (draw-ambient-background)
   (let [spiral-intensity (if (< myt 30) 0
                              (let [active-time (- myt 60)
                                    sine-wave (math.sin (- (* active-time 0.02) 1.5708))]
                                (/ (+ sine-wave 1) 2)))
         growth-sine (math.sin (- (* myt 0.015) 1.5708))
         normalized-growth (/ (+ growth-sine 1) 2)
-        current-rotations (+ 2 (* normalized-growth 4))]
-    (my-noise-spiral center-x center-y radius 4 spiral-intensity current-rotations))
+        current-rotations (+ 2 (* normalized-growth 4))
+        color 4]
+    (my-noise-spiral center-x center-y radius color spiral-intensity current-rotations))
   ;; (draw-fps)
   (set myt (+ myt 1)))
 
