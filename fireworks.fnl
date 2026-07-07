@@ -91,7 +91,7 @@
   (for [addr 0x0000 0x3FC0]
     (if (< (% addr 240) 120)
         (let [byte (peek addr)]
-          (if (> byte 0)
+          (if (< 0 byte)
               (let [p1 (rshift byte 4)
                     p2 (band byte 0x0F)
 
@@ -116,7 +116,7 @@
   (if (not text-exploded?)
       (do
         (print "Happy July 4th" 78 60 12 true 1)
-        (if (< frame-count 60)
+        (if (< frame-count 120)
             ;; Phase 1: Draw the text normally for 60 frames
             (print "Happy July 4th" 78 60 12 true 1)
             

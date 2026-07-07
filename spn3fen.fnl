@@ -122,6 +122,23 @@
     (set last-time now)
     (print (string.format "FPS: %.1f" current-fps) 0 0 14 true)))
 
+(fn simulate-crt-trails []
+  "Fades out alternating rows and instantly clears the scanline rows
+   to prevent permanent pixel artifacts."
+  (for [addr 0x0000 0x3FC0]
+    (if (< (% addr 240) 120)
+        (let [byte (peek addr)]
+          (if (< 0 byte)
+              (let [p1 (rshift byte 4)
+                    p2 (band byte 0x0F)
+
+                    p1-new (math.max 0 (- p1 1))
+                    p2-new (math.max 0 (- p2 1))
+
+                    new-byte (bor (lshift p1-new 4) p2-new)]
+                (poke addr new-byte))))
+        (poke addr 0))))
+
 (fn my-noise-spiral [centerx centery radius color intensity rotations]
   (let [startradius (/ radius 10)
         noise-scale 0.9
@@ -151,7 +168,8 @@
 (var spiral-intensity 0)
 
 (fn _G.TIC []
-  (cls 1)
+  ;; (cls 1)
+  (simulate-crt-trails)
   (let [spiral-intensity (if (< myt 30) 0
                              (let [active-time (- myt 60)
                                    sine-wave (math.sin (- (* active-time 0.02) 1.5708))]
@@ -160,7 +178,7 @@
         normalized-growth (/ (+ growth-sine 1) 2)
         current-rotations (+ 2 (* normalized-growth 4))]
     (my-noise-spiral center-x center-y radius 4 spiral-intensity current-rotations))
-  (draw-fps)
+  ;; (draw-fps)
   (set myt (+ myt 1)))
 
 
