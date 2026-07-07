@@ -3,7 +3,7 @@
 ;; desc:    Spiral noise 3 with fennel
 ;; site:    jjwatt/play-tic80
 ;; license: GPL3
-;; version: 0.7
+;; version: 0.8
 ;; script:  fennel
 ;; strict:  true
 (var myt 0)
@@ -147,7 +147,9 @@
       (for [x 0 WIDTH 8]
         (let [n-val (perlin-noise (* x bg-scale) (+ (* y bg-scale) time-step))]
           (when (< 0.5 n-val)
-            (let [bg-color (if (< 0.7 n-val) 12 1)]
+            (let [color-wave (% (+ (* n-val 5) (/ myt 8)) 5)
+                  bg-palette [1 2 8 12 14]
+                  bg-color (. bg-palette (+ 1 (math.floor color-wave)))]
               (pix x y bg-color))))))))
 
 (fn my-noise-spiral [centerx centery radius color intensity rotations]
