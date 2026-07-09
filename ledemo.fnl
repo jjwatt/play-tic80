@@ -142,18 +142,29 @@
         (rect 0 0 WIDTH step 0)
         (rect 0 step WIDTH (- HEIGHT step) 0))))
 
+(fn apply-scanlines [progress mode]
+  "Draws alternating horizontal blinds that choke out or reveal the screen."
+  (let [band-height 8]
+    (for [y 0 HEIGHT band-height]
+      (if (= mode :out)
+          (let [current-h (* band-height progress)]
+            (rect 0 y WIDTH current-h 0))
+          (let [current-h (* band-height (- 1 progress))]
+            (rect 0 y WIDTH current-h 0))))))
+
 (fn draw-transition-effect [effect-type progress mode]
   "Dispatches to the correct visual."
   (match effect-type
     :wipe (apply-wipe progress mode)
     :fade (apply-fade progress mode)
+    :scanlines (apply-scanlines progress mode)
     :none nil
     _     nil))
 
 (local scenes
        [
         {:duration 300 :transition-out :fade :trans-time 25 :draw (fn [st] (draw-star-tunnel st))}
-        {:duration 240 :transition-out :wipe :trans-time 25 :draw (fn [st] (draw-plasma st))}
+        {:duration 240 :transition-out :scanlines :trans-time 30 :draw (fn [st] (draw-plasma st))}
         {:duration 300 :transition-out :fade :trans-time 25 :draw (fn [st] (draw-wave-tunnel st))}
         ;; Gasket 1: Draw N lines at a time sequentially (no movement).
         {:duration 240
@@ -210,7 +221,7 @@
                    (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 1 line-state)))}
         ;; Scene 5: Copper Curtain Background Grid
         {:duration 360
-         :transition-out :fade
+         :transition-out :scanlines
          :trans-time 30
          :draw (fn [st]
                  (for [y 0 HEIGHT 2]
