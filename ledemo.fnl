@@ -81,8 +81,8 @@
   "Projects a 3D starfield tunnel moving forward over time."
   (let [cx (/ WIDTH 2)
         cy (/ HEIGHT 2)
-        num-stars 80
-        speed 1.5]
+        num-stars 180
+        speed 1.8]
     (for [i 1 num-stars]
       (math.randomseed i)
       (let [base-x (- (math.random 0 WIDTH) cx)
@@ -163,9 +163,9 @@
 
 (local scenes
        [
-        {:duration 300 :transition-out :fade :trans-time 25 :draw (fn [st] (draw-star-tunnel st))}
-        {:duration 240 :transition-out :scanlines :trans-time 30 :draw (fn [st] (draw-plasma st))}
-        {:duration 300 :transition-out :fade :trans-time 25 :draw (fn [st] (draw-wave-tunnel st))}
+        {:duration 240 :transition-out :fade :trans-time 30 :draw (fn [st] (draw-star-tunnel st))}
+        {:duration 400 :transition-out :scanlines :trans-time 30 :draw (fn [st] (draw-plasma st))}
+        {:duration 300 :transition-out :fade :trans-time 30 :draw (fn [st] (draw-wave-tunnel st))}
         ;; Gasket 1: Draw N lines at a time sequentially (no movement).
         {:duration 240
          :transition-out :none
@@ -180,7 +180,7 @@
                        lines-to-draw (math.floor (* (/ st 180) 729))
                        line-state {:total 0 :max lines-to-draw}]
                    (draw-gasket p1 p2 p3 5 cx cy 0 0 1.0 1 line-state)))}
-        ;; Scene 2: Rotate around X-axis 3D pitching
+        ;; Rotate gasket around X-axis 3D pitching
         {:duration 180
          :transition-out :none
          :trans-time 0
@@ -193,10 +193,10 @@
                        line-state {:total 0 :max nil}
                        scale-y (math.abs (math.cos (* st 0.03)))]
                    (draw-gasket p1 p2 p3 5 cx cy 0 0 scale-y 1 line-state)))}
-        ;; Scene 3: Flat spin
-        {:duration 360
-         :transition-out :wipe
-         :trans-time 25
+        ;; Gasket spin
+        {:duration 300
+         :transition-out :scanlines
+         :trans-time 30
          :draw (fn [st]
                  (let [cx (/ WIDTH 2)
                        cy (/ HEIGHT 2)
@@ -206,8 +206,8 @@
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}]
                    (draw-gasket p1 p2 p3 5 cx cy angle 0 1.0 1 line-state)))}
-        ;; Scene 4: Twisting Gasket
-        {:duration 360
+        ;; Twisting Gasket
+        {:duration 300
          :transition-out :none
          :trans-time 0
          :draw (fn [st]
@@ -219,8 +219,8 @@
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}]
                    (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 1 line-state)))}
-        ;; Scene 5: Copper Curtain Background Grid
-        {:duration 360
+        ;; Copper Curtain Background Grid
+        {:duration 300
          :transition-out :scanlines
          :trans-time 30
          :draw (fn [st]
