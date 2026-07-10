@@ -3,7 +3,7 @@
 ;; desc:    My first full demo
 ;; site:    jjwatt/play-tic80
 ;; license: GPL3
-;; version: 0.7
+;; version: 0.8
 ;; script:  fennel
 ;; strict:  true
 (global WIDTH 240)
@@ -493,7 +493,7 @@
                          snare (get-channel-vol 1 1.5)
                          center-y (/ HEIGHT 2)
                          num-names (# slide.names)
-                         font-scale 1]
+                         font-scale 1.5]
                      (for [i 1 num-names]
                        (let [name (. slide.names i)
                              direction (if (= (% (+ i slide-idx) 2) 0) 1 -1)
