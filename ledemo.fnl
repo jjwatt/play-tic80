@@ -3,7 +3,7 @@
 ;; desc:    My first full demo
 ;; site:    jjwatt/play-tic80
 ;; license: GPL3
-;; version: 0.5
+;; version: 0.6
 ;; script:  fennel
 ;; strict:  true
 (global WIDTH 240)
@@ -348,9 +348,11 @@
 
 (local greets-data
        [{:duration 150 :names ["GREETS:" "FARBRAUSCH" "RAZOR 1911" "FAIRLIGHT"]}
-        {:duration 200 :names ["@center_of_chaos" "@torquevoid" "@devabram"]}
-        {:duration 200 :names ["@WadeGrimridge" "@traits_reality" "@valigo" "@tsoding"]}
-        {:duration 300 :names ["TPOT AND ALL TIC-80 HACKERS!" "(infinite-jes)" "2026"]}])
+        {:duration 300 :names ["@lukelightCO" "@center_of_chaos" "@torquevoid" "@devabram" "@olavostauros"]}
+        {:duration 300 :names ["@Thelonius_1" "@monads4meals" "@HSVSphere" "@ludwigABAP"]}
+        {:duration 300 :names ["@WadeGrimridge" "@traits_reality" "@LewisCTech" "@Duskyy78"]}
+        {:duration 300 :names ["@valigo" "@tsoding"]}
+        {:duration 500 :names ["TPOT AND ALL TIC-80 HACKERS!" "(infinite-jes)" "2026"]}])
 
 (local scenes
        [
@@ -462,7 +464,7 @@
                      (line 0 y WIDTH y 1))
                    (let [gasket-color (if (> snare 0.6) 12 0)]
                      (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 gasket-color line-state))))}
-        {:duration (+ 150 200 200 300)
+        {:duration (+ 150 300 300 300 300 500)
          :transition-out :fade
          :trans-time 30.0
          :draw (fn [st]
