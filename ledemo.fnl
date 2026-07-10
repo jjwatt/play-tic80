@@ -114,6 +114,12 @@
         (poke4 (+ i (* 0x3FF0 2)) i))
       (poke4 (+ ?c0 (* 0x3FF0 2)) ?c1)))
 
+(fn get-bass-amplitude []
+  "Peeks channel 0 & 1 volume register memory to gauge bass/kick volume."
+  (let [ch0-vol (band (peek 0x0FF9C) 0x0F)
+        ch1-vol (band (peek 0xFFA4) 0x0F)]
+    (/ (+ ch0-vol ch1-vol) 30.0)))
+
 (fn draw-rotated-line [p1 p2 cx cy angle twist-factor scale-y color-idx line-state]
   "Rotates two points and draws a line between them in one go."
   (set line-state.total (+ line-state.total 1))
@@ -309,16 +315,18 @@
          :draw (fn [st]
                  (simulate-crt-trails)
                  (draw-ambient-background st)
-                 (let [radius 20
+                 (let [bass-drop (get-bass-amplitude)
+                       radius (+ 20 (* bass-drop 15))
                        center-x (/ WIDTH 2)
                        center-y (/ HEIGHT 2)
-                       spiral-intensity (if (< st 30) 0
+                       bass-intensity (if (< st 30) 0
                                             (let [active-time (- st 60)
                                                   sine-wave (math.sin (- (* active-time 0.02) 1.5708))]
                                               (/ (+ sine-wave 1) 2)))
+                       spiral-intensity (+ bass-intensity (* bass-drop 0.8))
                        growth-sine (math.sin (- (* st 0.015) 1.5708))
                        normalized-growth (/ (+ growth-sine 1) 2)
-                       current-rotations (+ 2 (* normalized-growth 4))]
+                       current-rotations (+ 2 (* normalized-growth 4) (* bass-drop 2))]
                    (draw-noise-spiral st center-x center-y radius spiral-intensity current-rotations))
 )}
         ;; Gasket 1: Draw N lines at a time sequentially (no movement).
