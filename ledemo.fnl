@@ -1,6 +1,6 @@
-;; title:   gasketdemo
+;; title:   ledemo
 ;; author:  jwatt@broken.watch
-;; desc:    sierpinksi gasket demo
+;; desc:    My first full demo
 ;; site:    jjwatt/play-tic80
 ;; license: GPL3
 ;; version: 0.2
@@ -303,8 +303,8 @@
         {:duration 240 :transition-out :fade :trans-time 30 :draw (fn [st] (draw-star-tunnel st))}
         {:duration 400 :transition-out :scanlines :trans-time 30 :draw (fn [st] (draw-plasma st))}
         {:duration 300 :transition-out :fade :trans-time 30 :draw (fn [st] (draw-wave-tunnel st))}
-        {:duration 300
-         :transition-out :fade
+        {:duration 400
+         :transition-out :scanlines
          :trans-time 30
          :draw (fn [st]
                  (simulate-crt-trails)
