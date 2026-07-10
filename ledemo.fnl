@@ -178,7 +178,12 @@
   (let [cx (/ WIDTH 2)
         cy (/ HEIGHT 2)
         num-stars 180
-        speed 1.8]
+        kick (get-channel-vol 0)
+        snare (get-channel-vol 1)
+        ;; Kick drum boosts star velocity.
+        base-speed 1.5
+        speed (+ base-speed (* kick 4.5))
+        shake-x (* snare (- (math.random 0 6) 3))]
     (for [i 1 num-stars]
       (math.randomseed i)
       (let [base-x (- (math.random 0 WIDTH) cx)
@@ -186,9 +191,13 @@
             z (% (- (+ (math.random 1 255) (* st speed)) 1) 255)
             z-inv (- 255 z)]
         (when (> z-inv 0)
-          (let [sx (+ cx (/ (* base-x 100) z-inv))
+          (let [sx (+ cx (/ (* base-x 100) z-inv) shake-x)
                 sy (+ cy (/ (* base-y 100) z-inv))
-                color (math.floor (mapvalue z-inv 0 255 2 15))]
+                ;; Map brightness based on depth.
+                base-color (math.floor (mapvalue z-inv 0 255 2 15))
+                color (if (< 0.5 snare)
+                          (math.random 12 15)
+                          base-color)]
             (when (and (>= sx 0) (< sx WIDTH) (>= sy 0) (< sy HEIGHT))
               (pix sx sy color))))))))
 
