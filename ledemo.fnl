@@ -120,6 +120,13 @@
         ch1-vol (band (peek 0xFFA4) 0x0F)]
     (/ (+ ch0-vol ch1-vol) 30.0)))
 
+(fn get-channel-vol [ch]
+  (let [base-addr 0x0FF9C
+        ch-offset (* ch 8)
+        vol-byte (peek (+ base-addr ch-offset))
+        raw-vol (band vol-byte 0x0F)]
+    (/ raw-vol 15.0)))
+
 (fn draw-rotated-line [p1 p2 cx cy angle twist-factor scale-y color-idx line-state]
   "Rotates two points and draws a line between them in one go."
   (set line-state.total (+ line-state.total 1))
@@ -205,13 +212,15 @@
   "Draws an oscillating tunnel using overlapping vector rings."
   (let [cx (/ WIDTH 2)
         cy (/ HEIGHT 2)
-        ring-count 20]
+        ring-count 20
+        audio-kick (get-bass-amplitude)]
     (for [i 1 ring-count]
       (let [ring-t (+ st (* i 8))
-            radius (* i 6)
-            ;; Oscillate centers independently across the screen.
-            offset-x (* 30 (math.sin (* ring-t 0.02)))
-            offset-y (* 20 (math.cos (* ring-t 0.035)))
+            ;; Push standard radius out wider if sound is louder.
+            radius (* i (+ 6 (* audio-kick 4)))
+            ;; Modulate line speed by audio peak velocity.
+            offset-x (* (+ 30 (* audio-kick 20)) (math.sin (* ring-t 0.02)))
+            offset-y (* (+ 20 (* audio-kick 15)) (math.cos (* ring-t 0.035)))
             color (math.max 2 (% (+ i (math.floor (/ st 4))) 15))]
         (circb (+ cx offset-x) (+ cy offset-y) radius color)))))
 
@@ -308,7 +317,9 @@
        [
         {:duration 240 :transition-out :fade :trans-time 30 :draw (fn [st] (draw-star-tunnel st))}
         {:duration 400 :transition-out :scanlines :trans-time 30 :draw (fn [st] (draw-plasma st))}
-        {:duration 300 :transition-out :fade :trans-time 30 :draw (fn [st] (draw-wave-tunnel st))}
+        {:duration 300 :transition-out :fade
+         :trans-time 30
+         :draw (fn [st] (draw-wave-tunnel st))}
         {:duration 400
          :transition-out :scanlines
          :trans-time 30
