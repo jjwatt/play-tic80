@@ -372,7 +372,10 @@
                        p1 {:x 0 :y 1}
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 1}
-                       lines-to-draw (math.floor (* (/ st 180) 729))
+                       kick (get-channel-vol 0 2.0)
+                       audio-boost (* kick 150)
+                       base-lines (* (/ st 180) 729)
+                       lines-to-draw (math.floor (+ base-lines audio-boost))
                        line-state {:total 0 :max lines-to-draw}]
                    (draw-gasket p1 p2 p3 5 cx cy 0 0 1.0 1 line-state)))}
         ;; Rotate gasket around X-axis 3D pitching
