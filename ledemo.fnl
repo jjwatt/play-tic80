@@ -352,7 +352,7 @@
         {:duration 300 :names ["@Thelonius_1" "@monads4meals" "@HSVSphere" "@ludwigABAP"]}
         {:duration 300 :names ["@WadeGrimridge" "@traits_reality" "@LewisCTech" "@Duskyy78"]}
         {:duration 300 :names ["@valigo" "@tsoding"]}
-        {:duration 500 :names ["TPOT AND ALL TIC-80 HACKERS!" "(infinite-jes)" "2026"]}])
+        {:duration 500 :names ["TPOT AND ALL TIC-80 HACKERS!" "ledemo" "by (infinite-jes)" "2026"]}])
 
 (local scenes
        [
@@ -361,7 +361,7 @@
         {:duration 300 :transition-out :fade
          :trans-time 30
          :draw (fn [st] (draw-wave-tunnel st))}
-        {:duration 400
+        {:duration 300
          :transition-out :scanlines
          :trans-time 30
          :draw (fn [st]
@@ -408,9 +408,9 @@
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}
-                       kick (get-channel-vol 0 1.5)
+                       kick (get-channel-vol 0 2.0)
                        base-scale (math.abs (math.cos (* st 0.03)))
-                       scale-y (+ base-scale (* kick 0.4))]
+                       scale-y (+ base-scale (* kick 0.5))]
                    (draw-gasket p1 p2 p3 5 cx cy 0 0 scale-y 1 line-state)))}
         ;; Gasket spin
         {:duration 300
@@ -424,9 +424,9 @@
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}
-                       snare (get-channel-vol 1 2.5)
+                       snare (get-channel-vol 1 1.5)
                        base-angle (* st (math.rad 0.75))
-                       angle (+ base-angle (* snare (math.rad 45.0)))]
+                       angle (+ base-angle (* snare (math.rad 20.0)))]
                    (draw-gasket p1 p2 p3 5 cx cy angle 0 1.0 1 line-state)))}
         ;; Twisting Gasket
         {:duration 300
