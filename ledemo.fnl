@@ -120,16 +120,17 @@
         ch1-vol (band (peek 0xFFA4) 0x0F)]
     (/ (+ ch0-vol ch1-vol) 30.0)))
 
-(fn get-channel-vol [ch]
+(fn get-channel-vol [ch ?boost-factor]
   "Direct mapping to avoid any inline calculation shifting anomalies."
   (let [addr (match ch
                0 0x0FF9C
                1 0x0FFA4
-               2 0x0FFAF  ; Double check if channel 2 offset is exactly 8 bytes or has padding
-               3 0x0FFB4  ; Custom layout check
+               2 0x0FFAC
+               3 0x0FFB4
                _ 0x0FF9C)
-        raw-vol (band (peek addr) 0x0F)]
-    (/ raw-vol 15.0)))
+        raw-vol (band (peek addr) 0x0F)
+        norm-vol (/ raw-vol 15.0)]
+    (math.min 1.0 (* norm-vol (or ?boost-factor 1.0)))))
 
 (fn draw-rotated-line [p1 p2 cx cy angle twist-factor scale-y color-idx line-state]
   "Rotates two points and draws a line between them in one go."
@@ -207,8 +208,8 @@
 
 (fn draw-plasma [st]
   "Generates an interference pattern plasma mapped directly to pixel space."
-  (let [hihat (get-channel-vol 1)
-        bass (get-channel-vol 2)
+  (let [hihat (get-channel-vol 0 2.5)
+        bass (get-channel-vol 1 2.5)
         t-factor (+ (* st 0.04) (* hihat 0.2))
         color-spread (+ 3 (* bass 4))]
     (for [y 0 HEIGHT 2]
@@ -283,7 +284,7 @@
 
 (fn draw-ambient-background [st]
   "Draws a faint shifting starfield grid."
-  (let [bass (get-channel-vol 0)
+  (let [bass (get-channel-vol 1)
         time-step (* st 0.05)
         bg-scale 0.10
         threshold (- 0.5 (* bass 0.15))]
