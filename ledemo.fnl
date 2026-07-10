@@ -420,23 +420,31 @@
                        p1 {:x 0 :y 0}
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 0}
-                       line-state {:total 0 :max nil}]
-                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 1 line-state)))}
+                       line-state {:total 0 :max nil}
+                       kick (get-channel-vol 0 1.8)
+                       snare (get-channel-vol 1 2.0)
+                       base-angle (* (+ st 240) (math.rad 0.25))
+                       angle (+ base-angle (* kick (math.rad 15)))
+                       twist-factor (+ 1 (* snare 3.0))]
+                   (draw-gasket p1 p2 p3 5 cx cy angle twist-factor 1.0 1 line-state)))}
         ;; Copper Curtain Background Grid
         {:duration 300
          :transition-out :scanlines
          :trans-time 30
          :draw (fn [st]
-                 (for [y 0 HEIGHT 2]
-                   (line 0 y WIDTH y 1))
-                 (let [cx (/ WIDTH 2)
+                 (let [snare (get-channel-vol 1 2.0)
+                       cx (/ WIDTH 2)
                        cy (/ HEIGHT 2)
                        p1 {:x 0 :y 0}
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}
-                       angle (* st (math.rad 0.5))]
-                   (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 0 line-state)))}])
+                       angle (* st (math.rad 0.5))
+                       line-spacing (if (< 0.5 snare) 4 2)]
+                   (for [y 0 HEIGHT line-spacing]
+                     (line 0 y WIDTH y 1))
+                   (let [gasket-color (if (> snare 0.6) 12 0)]
+                     (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 gasket-color line-state))))}])
 
 
 (fn _G.BOOT []
