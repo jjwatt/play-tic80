@@ -352,7 +352,15 @@
         {:duration 300 :names ["@Thelonius_1" "@monads4meals" "@HSVSphere" "@ludwigABAP"]}
         {:duration 300 :names ["@WadeGrimridge" "@traits_reality" "@LewisCTech" "@Duskyy78"]}
         {:duration 300 :names ["@valigo" "@tsoding"]}
+        {:duration 300 :names ["technomancy" "fennel-lang"]}
         {:duration 500 :names ["TPOT AND ALL TIC-80 HACKERS!" "ledemo" "by (infinite-jes)" "2026"]}])
+
+(local greets-duration
+       ((fn []
+          (var total 0)
+          (each [_ slide (ipairs greets-data)]
+            (set total (+ total slide.duration)))
+          total)))
 
 (local scenes
        [
@@ -464,7 +472,7 @@
                      (line 0 y WIDTH y 1))
                    (let [gasket-color (if (> snare 0.6) 12 0)]
                      (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 gasket-color line-state))))}
-        {:duration (+ 150 300 300 300 300 500)
+        {:duration greets-duration
          :transition-out :fade
          :trans-time 30.0
          :draw (fn [st]
@@ -499,7 +507,28 @@
                              text-color (if (< 0.6 snare) 14 base-color)
                              final-x (if (< 0.5 kick) (+ current-x (- (math.random 0 2) 1)) current-x)]
                          (print name (+ final-x 1) (+ line-y 1) 0 false font-scale)
-                         (print name final-x line-y text-color false font-scale))))))}])
+                         (print name final-x line-y text-color false font-scale))))))}
+        {:duration 400
+         :transition-out :fade
+         :trans-time 30
+         :draw (fn [st]
+                 (draw-greets-bg st)
+                 (let [logo-id 256
+                       logo-w-tiles 16
+                       logo-h-tiles 16
+                       logo-w-px (* logo-w-tiles 8)
+                       logo-h-px (* logo-h-tiles 8)
+                       base-x (/ (- WIDTH logo-w-px) 2)
+                       base-y (/ (- HEIGHT logo-h-px) 2)
+                       kick (get-channel-vol 0 1.0)
+                       snare (get-channel-vol 1 1.5)
+                       shake-x (* snare (- (math.random 0 4) 2))
+                       thump-y (if (< 0.4 kick) 2 0)
+                       final-x (+ base-x shake-x)
+                       final-y (+ base-y thump-y)
+                       scale-factor 1
+                       transparent-color 0]
+                   (spr logo-id final-x final-y transparent-color scale-factor 0 0 logo-w-tiles logo-h-tiles)))}])
 
 (fn _G.BOOT []
   (music 0))
@@ -558,6 +587,179 @@
 ;; 020:ccca00ccaaaa0ccecaaa0ceeaaaa0ceeaaaa0cee8888ccee000cceeecccceeee
 ;; </TILES>
 
+;; <SPRITES>
+;; 002:0000000000000000ffffffffffffffffffffffffffffffffffffffffffffffff
+;; 003:00000000ffffffffff0fffffffffffffffffffffffffffffffffffffffffff76
+;; 004:fffffffffffffffffffffffffffffffffffffffffffffffffffff76766666666
+;; 005:ffffcff0ffffeff0fffffff0fffffff0fffffff0fffffff0fffffffeffffff00
+;; 018:ffffffffffffffff00ffffff00ffffff00ffffff00ffffff00ffffff00dfffff
+;; 019:766666666666666676666666f6666666f6666666f6666666f6666666f6666666
+;; 020:6666666666666666666666666666666666666666666666666666666666666666
+;; 021:fffff0ee7fffffff6fffffff6fffffff6fffffff6fffffff67ffffff66ffffff
+;; 022:000000000000000000000000000000000000000000000000f0000000f000ffff
+;; 023:00000000000000000000000000000000000000000000000000000000fffff000
+;; 025:000000000000000000000000000000df000000ef000000ef000fffff000fffff
+;; 026:000000000000000000000000fff00000ffffff00ffffff00fffffff0fffffeff
+;; 034:000fffff000fffff000fffff000fffff000fffff000f0fff0000ffff000fffff
+;; 035:f7666666ff666666ff666666ff666666ff666666ff666666ff766666fff66666
+;; 036:6666666666666666666666666666666666666666666666666666666666666666
+;; 037:66ffffff66ffffff66ffffff66ffffff667fffff666fffff666fffff666fffff
+;; 038:f000fffff000fffff000fffff000ffffff00ffffff00ffffffffffffffffffff
+;; 039:ffffffffffffffffffffffffffffffffffffffffffffffffff767fffff666666
+;; 040:ffffffffffffffffffffffffffffffffffffffffffffffffffffffff6667ffff
+;; 041:fdfffffffdfffffffffffffffffffffffffffffffffffffffffffffffffffff6
+;; 042:fffffffffffffffffffffffffffffffff66fffff6666ffff66666fff6666667f
+;; 043:fff00000fff00000ffff0000ffffff00ffffffcfffffffcfffffffffffffffff
+;; 044:000000000000000000000000000000000000000000000000f0000000f0000000
+;; 050:0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff0000ffff000000ff
+;; 051:fff66666fff66666fff76666ffff6666ffff6666ffff6666ffff6666ffff6666
+;; 052:6666666666666666666666666666666666666666666666666666666666666666
+;; 053:666fffff666fffff666fffff666fffff6666ffff6666ffff6666ffff6666ffff
+;; 054:ffffcfffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+;; 055:ff666666ff666666ff666666ff666666f7666666f6666666f6666666f6666666
+;; 056:6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff
+;; 057:fffffff6ffffff66fffff766fffff666ffff6666ffff6666fff66666ff766666
+;; 058:6666666666666666666666666666666666666666666666676666666f666666ff
+;; 059:ffffffff6fffffff6fffffff6ffffffffffffffffffffffffffffffffffffff0
+;; 060:f0000000f0000000f0000000f000000000000000000000000000000000000000
+;; 066:000000ff000000ff000000ff000000ff000000ff000000ff000000ff0000000f
+;; 067:fffff666fffff666fffff666fffff666fffff666ffffff66ffffff66ffffff66
+;; 068:6666666666666666666666666666666666666666666666666666666f666666ff
+;; 069:6666ffff6666ffff6666ffff666fffff66ffffff6fffffffffffffffffffffff
+;; 070:fffffffffffffffffff0ffffffffffffffffffffffffffffffffffffffffffff
+;; 071:f6666666f6666666766666667666666666666666666666666666666666666666
+;; 072:666fffff666fffff666fffff666fffff666fffff667ffff766fffff666fffff6
+;; 073:ff666666f7666666f66666666666666666666666666666666666666f66666fff
+;; 074:666667ff66666fff6666ffff666fffff66ffffff6fffffffffffffffffffffff
+;; 075:fffffff0ffff0000ffffdd00ff0f0000ffff0000fff00000fff00000fff00000
+;; 082:0000000f0000000f0000000f0000000f0000000f0000000f0000ff0f0000ff00
+;; 083:ffffff76fffffff6fffffff6fffffff6ffffffffffffffffffffffff0fffffff
+;; 084:66666fff6666ffff66ffffff66ffffffffffffffffffffffffffffffffffffee
+;; 085:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffedddddcc
+;; 086:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffcccddddd
+;; 087:6666666666666ffff6ffffffffffffffffffffffffffffffffffffffeeefffff
+;; 088:fffffff6ffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+;; 089:66ffffff6fffffffffffffffffffffffffffffffffffffffffff0fffff000fff
+;; 090:fffffffffffffffffffffffffffffffffffff0f0fffffff0ffffff00ffffff00
+;; 091:00000000ff000000000000000000000000000000000000000000000000000000
+;; 097:00000000000000000000000f0000000f000000ff0000ffff000fffff000fffff
+;; 098:000fffffff0fffffffeffffffffffffffffffffffffffffefffffeedffffedcc
+;; 099:fffffffffffffffefffffeddfffedcccfedcccccddcccccccccccccccccccccc
+;; 100:ffeeddddeddccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 101:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 102:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 103:cddddeefccccccddcccccccccccccccccccccccccccccccccccccccccccccccc
+;; 104:ffffffffeeffffffcddeffffccccdeffccccccdecccccccdcccccccccccccccc
+;; 105:ff00ffffffffffffffffffffffffffffffffffffdeffffffcdeeffffcccdefff
+;; 106:ffffff00fffff000fff00000fff00000fff00000fffe0000ffffffe0fffff0e0
+;; 112:00000000000000000000000f000000ff000000ff000000fe00000fff000fff0f
+;; 113:00ffffff0ffffffffffffffffffffffffffffffdffffffdcfffffedcffffedcc
+;; 114:fffedcccffedccccfecccccceccccccccccccccccccccccccccccccccccccccc
+;; 115:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 116:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 117:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 118:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 119:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 120:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 121:ccccdeffcccccddecccccccdcccccccccccccccccccccccccccccccccccccccc
+;; 122:ffffff00ffffffffefffffffdeffffffcdefffffccdfffffccceffffccccefff
+;; 123:0000000000000000ff000000fff00000fff00000ffff0000ffff0000ffffff00
+;; 128:000fffff000fffff00ffffff00ffffff00ffffff00ffffff0effffff0fdffffe
+;; 129:fffedcccfffdccccffedccccfedcccccfdccccccedccccccecccccccdccccccc
+;; 130:cccccccccccccccccccccccccccccccccccccccccccccccccccccccdccccccde
+;; 131:ccccccccccccccccccccccccccccccccccccccccddeeeddceeffffedffffffff
+;; 132:ccccccccccccccccccccccccccccccccccccccccccccccccdcccccccedcccccc
+;; 133:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 134:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 135:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccd
+;; 136:ccccccccccccccccccccccccccccccccccccccccccddeeedddeffffeefffffff
+;; 137:ccccccccccccccccccccccccccccccccccccccccdcccccccedccccccffdccccc
+;; 138:ccccdeffcccccdefccccccefccccccdecccccccdcccccccdcccccccccccccccc
+;; 139:ffffff00ffffff00fffffff0fffffff0fffffff0efffffffdffffffedeffffff
+;; 144:0ffffffe0fffffedffffffedffffffecffffffdcfffffedcfffffedcfffffedc
+;; 145:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 146:ccccceffccccdeffcccdefffcccdfffeccdeffedccdffedccceffdcccdefeccc
+;; 147:ffffffffffffffffffffffffefffffffddefffffccdeffffccceffffcccdffff
+;; 148:fedcccccffedccccfffdccccfffedcccffffdcccffffecccffffedccfffffdcc
+;; 149:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 150:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 151:ccccccdeccccccefcccccdffccccdeffccccdfffcccceffdcccdefeccccdefec
+;; 152:fffffffffffffffffffffffffeefffffeddeffffccccefffccccdeffccccceff
+;; 153:fffeccccffffdcccffffedccfffffdccfffffedcffffffdcffffffecffffffed
+;; 154:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 155:ceffffffcdefffffcdefffffcceffffeccdfffffccdeffffccdeffffccdeffff
+;; 156:e0000000e000000000000000f0000000f0000000f0000000f0000000f0000000
+;; 160:fffffdccfffffdccfffffdccfffffdccfffffdccfffffdccfffffdccfffffdcc
+;; 161:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 162:cdefeccccdefeccccdffecccceffedcccefffdcccefffedcceffffeecdffffff
+;; 163:cccdffffcccdffffcccdffffcccdffffccdeffffccefffffdeffffffffffffff
+;; 164:fffffeccfffffeccfffffeccffffffccffffffdcffffffccffffffccfffffecc
+;; 165:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 166:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 167:ccceffdcccceffdcccceffdcccceffecccceffedcccefffeccceffffccceffff
+;; 168:cccccdffcccccdffccccceffccccdeffccccdeffcccdefffeeeeffffffffffff
+;; 169:ffffffedfffffffdfffffffefffffffefffffffefffffffefffffffefffffffe
+;; 170:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 171:cccdffffcccdffffcccdffffcccdffffcccdffffcccdffffcccdffffcccdffff
+;; 172:f0000000f0000000f0000000f0000000f0000000f0000000f0000000f0000000
+;; 176:fffffdccfffffeccfffffedcfffffedcffffffdcffffffdcffffffecffffffed
+;; 177:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 178:cdefffffcdefffffccefffffccefffffccdeffffccdeffffcccdffffccccefff
+;; 179:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+;; 180:fffffeccfffffeccffffedccffffedccffffecccfffedcccfffeccccffedcccc
+;; 181:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 182:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 183:ccceffffcccdffffcccdefffccccefffccccefffccccdeffcccccdffcccccdef
+;; 184:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+;; 185:ffffffedffffffedffffffedffffffecffffffdcfffffedcfffffdccffffedcc
+;; 186:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 187:cccdffffccdeffffccdeffffccdeffffccdfffffccefffffcdefffffcdefffff
+;; 188:f0000000f0000000f0000000f0000000f0000000f0000000f0000000f0000000
+;; 192:0ffffffe0ffffffe0fffffff0fffffff00ffffff00f0ffff00ffffff00ffffff
+;; 193:ccccccccccccccccdcccccccecccccccfdccccccfedcccccffdcccccffedcccc
+;; 194:ccccdeffcccccdefccccccdecccccccdcccccccccccccccccccccccccccccccc
+;; 195:fffffffffffffffffffffffedeeeeeddcdddddcccccccccccccccccccccccccc
+;; 196:ffdcccccfeccccccdccccccccccccccccccccccccccccccccccccccccccccccc
+;; 197:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 198:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 199:ccccccdfcccccccecccccccccccccccccccccccccccccccccccccccccccccccc
+;; 200:ffffffffefffffffdeffffffcddeefeeccddddddcccccccccccccccccccccccc
+;; 201:fffedcccffedccccfedcccccddcccccccccccccccccccccccccccccccccccccc
+;; 202:cccccccccccccccccccccccdcccccccdccccccddccccccdecccccddfccccddef
+;; 203:ceffffffdeffffffdfffffffeffffff0fffffffefffffff0fffffff0fffffff0
+;; 208:000eefff00000fff00000fff00000fff0000000f000000ff0000000f0000000f
+;; 209:fffeccccffffdcccfffffdccfffffedcffffffedfffffffeffffffffffffffff
+;; 210:ccccccccccccccccccccccccccccccccccccccccdcccccccedccccccfedccccc
+;; 211:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 212:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 213:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 214:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 215:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 216:cccccccccccccccccccccccccccccccccccccccccccccccccccccc4dcccc4ddd
+;; 217:cccccccccccccccccccccc4dcccc4dddcc4ddddd4dddddddddddddddddddddde
+;; 218:cccddeff44dddfffddddffffdddeffffddefffffdeffffffefffffffffffffff
+;; 219:ffffff00ffffff00ffff0000ffff0000fff00000fff00000ff000000ff000000
+;; 225:0fffffff00ffffff000fffff000fffff0000ffff000000ff0000000f0000000f
+;; 226:ffedccccfffeddccfffffedcffffffedffffffffffffffffffffffffee0fffff
+;; 227:ccccccccccccccccccccccccccccccccedccccccfeeddcccffffeddcffffffed
+;; 228:ccccccccccccccccccccccccccccccccccccccccccccccccccccccccdccccccc
+;; 229:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+;; 230:cccccccccccccccccccccccccccccccccccccccccccccccccccccc4dcccc4ddd
+;; 231:cccccccccccccccccccccc4dcccc4dddcc4ddddd4ddddddddddddddddddddddd
+;; 232:cc4ddddd4ddddddddddddddddddddddddddddddeddddddeeddddefffdeefffff
+;; 233:ddddddefddddeeffdddeffffdeefffffefffffffffffffffffffffffffffffff
+;; 234:fffffffffffffff0ffffff00ffffff00fffff000fff00000ff000000ff000000
+;; 242:ee0fffff000fffff000000ff0000000000000000000000000000000000000000
+;; 243:ffffffffffffffffffffffffffffffffffffffff000fffff0000000f00000000
+;; 244:eeedddccfffeeeedffffffffffffffffffffffffffffffffffffffff0000ffff
+;; 245:ccccccccddddddddeeeeeeddffffffffffffffffffffffffffffffffffffffff
+;; 246:ccc4d4dddddddddddddeeeeeffffffffffffffffffffffffffffffffffffffff
+;; 247:ddddddeeddeeeeffeffffffffffffffffffffffffffffffffffffffffffff000
+;; 248:effffffffffffffffffffffffffffff0fffffff0ffffff00ff00000000000000
+;; 249:ffffffffffffff00fff00000e0000000e0000000000000000000000000000000
+;; 250:f000000000000000000000000000000000000000000000000000000000000000
+;; </SPRITES>
+
 ;; <WAVES>
 ;; 000:00000000ffffffff00000000ffffffff
 ;; 001:0123456789abcdeffedcba9876543210
@@ -589,3 +791,4 @@
 ;; <PALETTE>
 ;; 000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57
 ;; </PALETTE>
+
