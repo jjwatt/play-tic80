@@ -389,7 +389,9 @@
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}
-                       scale-y (math.abs (math.cos (* st 0.03)))]
+                       kick (get-channel-vol 0 1.5)
+                       base-scale (math.abs (math.cos (* st 0.03)))
+                       scale-y (+ base-scale (* kick 0.4))]
                    (draw-gasket p1 p2 p3 5 cx cy 0 0 scale-y 1 line-state)))}
         ;; Gasket spin
         {:duration 300
@@ -402,7 +404,10 @@
                        p1 {:x 0 :y 0}
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 0}
-                       line-state {:total 0 :max nil}]
+                       line-state {:total 0 :max nil}
+                       snare (get-channel-vol 1 2.5)
+                       base-angle (* st (math.rad 0.75))
+                       angle (+ base-angle (* snare (math.rad 45.0)))]
                    (draw-gasket p1 p2 p3 5 cx cy angle 0 1.0 1 line-state)))}
         ;; Twisting Gasket
         {:duration 300
