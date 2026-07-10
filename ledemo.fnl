@@ -334,6 +334,24 @@
     :none nil
     _     nil))
 
+(fn draw-greets-bg [st]
+  "Draws a dark, subtle sine grid that reacts gently to the kick."
+  (let [kick (get-channel-vol 0 1.5)
+        wave-t (* st 0.03)
+        amplitude (+ 8 (* kick 12))]
+    (for [x 0 WIDTH 12]
+      (let [y-offset (* amplitude (math.sin (+ wave-t (* x 0.025))))]
+        (line x 0 (+ x y-offset) HEIGHT 1)))
+    (for [y 0 HEIGHT 12]
+      (let [x-offset (* amplitude (math.cos (+ wave-t (* y 0.025))))]
+        (line 0 y WIDTH (+ y x-offset) 1)))))
+
+(local greets-data
+       [{:duration 150 :names ["GREETS:" "FARBRAUSCH" "RAZOR 1911" "FAIRLIGHT"]}
+        {:duration 200 :names ["@center_of_chaos" "@torquevoid" "@devabram"]}
+        {:duration 200 :names ["@WadeGrimridge" "@traits_reality" "@valigo" "@tsoding"]}
+        {:duration 300 :names ["TPOT AND ALL TIC-80 HACKERS!" "(infinite-jes)" "2026"]}])
+
 (local scenes
        [
         {:duration 240 :transition-out :fade :trans-time 30 :draw (fn [st] (draw-star-tunnel st))}
@@ -359,8 +377,7 @@
                        growth-sine (math.sin (- (* st 0.015) 1.5708))
                        normalized-growth (/ (+ growth-sine 1) 2)
                        current-rotations (+ 2 (* normalized-growth 4) (* bass-drop 2))]
-                   (draw-noise-spiral st center-x center-y radius spiral-intensity current-rotations))
-)}
+                   (draw-noise-spiral st center-x center-y radius spiral-intensity current-rotations)))}
         ;; Gasket 1: Draw N lines at a time sequentially (no movement).
         {:duration 240
          :transition-out :none
@@ -444,8 +461,43 @@
                    (for [y 0 HEIGHT line-spacing]
                      (line 0 y WIDTH y 1))
                    (let [gasket-color (if (> snare 0.6) 12 0)]
-                     (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 gasket-color line-state))))}])
-
+                     (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 gasket-color line-state))))}
+        {:duration (+ 150 200 200 300)
+         :transition-out :fade
+         :trans-time 30.0
+         :draw (fn [st]
+                 (draw-greets-bg st)
+                 (var local-t st)
+                 (var slide nil)
+                 (var slide-idx 1)
+                 (for [i 1 (# greets-data)]
+                   (let [s (. greets-data i)]
+                     (if (and (= slide nil) (< local-t s.duration))
+                         (set slide s)
+                         (when (= slide nil)
+                           (set local-t (- local-t s.duration))
+                           (set slide-idx (+ slide-idx 1))))))
+                 (when slide
+                   (let [kick (get-channel-vol 0 1.2)
+                         snare (get-channel-vol 1 1.5)
+                         center-y (/ HEIGHT 2)
+                         num-names (# slide.names)
+                         font-scale 1]
+                     (for [i 1 num-names]
+                       (let [name (. slide.names i)
+                             direction (if (= (% (+ i slide-idx) 2) 0) 1 -1)
+                             (print-w text-w) (print name 0 -20 0 false 1 true)
+                             target-x (/ (- WIDTH print-w) 2)
+                             start-x (if (> direction 0) (+ WIDTH 20) (- (+ print-w 20)))
+                             entry-progress (math.min 1.0 (/ local-t 25))
+                             eased-t (- 1 (math.pow (- 1 entry-progress) 3))
+                             current-x (lerp start-x target-x eased-t)
+                             line-y (+ (- center-y (* num-names 8)) (* i 20))
+                             base-color 12
+                             text-color (if (< 0.6 snare) 15 base-color)
+                             final-x (if (< 0.5 kick) (+ current-x (- (math.random 0 2) 1)) current-x)]
+                         (print name (+ final-x 1) (+ line-y 1) 0 false font-scale)
+                         (print name final-x line-y text-color false font-scale))))))}])
 
 (fn _G.BOOT []
   (music 0))
