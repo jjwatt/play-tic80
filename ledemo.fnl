@@ -3,7 +3,7 @@
 ;; desc:    My first full demo
 ;; site:    jjwatt/play-tic80
 ;; license: GPL3
-;; version: 0.6
+;; version: 0.7
 ;; script:  fennel
 ;; strict:  true
 (global WIDTH 240)
@@ -195,7 +195,7 @@
             base-y (- (math.random 0 HEIGHT) cy)
             z (% (- (+ (math.random 1 255) (* st speed)) 1) 255)
             z-inv (- 255 z)]
-        (when (> z-inv 0)
+        (when (< 0 z-inv)
           (let [sx (+ cx (/ (* base-x 100) z-inv) shake-x)
                 sy (+ cy (/ (* base-y 100) z-inv))
                 ;; Map brightness based on depth.
@@ -203,7 +203,7 @@
                 color (if (< 0.5 snare)
                           (math.random 12 15)
                           base-color)]
-            (when (and (>= sx 0) (< sx WIDTH) (>= sy 0) (< sy HEIGHT))
+            (when (and (<= 0 sx) (< sx WIDTH) (<= 0 sy) (< sy HEIGHT))
               (pix sx sy color))))))))
 
 (fn draw-plasma [st]
@@ -294,7 +294,7 @@
           (when (< threshold n-val)
             (let [color-wave (% (+ (* n-val 5) (/ st 8)) 5)
                   bg-palette [1 2 8 12 14]
-                  bg-color (if (> bass 0.7)
+                  bg-color (if (< 0.7 bass)
                                15
                                (. bg-palette (+ 1 (math.floor color-wave))))]
               (pix x y bg-color))))))))
@@ -470,11 +470,12 @@
                        line-spacing (if (< 0.5 snare) 4 2)]
                    (for [y 0 HEIGHT line-spacing]
                      (line 0 y WIDTH y 1))
-                   (let [gasket-color (if (> snare 0.6) 12 0)]
+                   (let [gasket-color (if (< 0.6 snare) 12 0)]
                      (draw-gasket p1 p2 p3 5 cx cy angle 1 1.0 gasket-color line-state))))}
+        ;; Greets
         {:duration greets-duration
-         :transition-out :fade
-         :trans-time 30.0
+         :transition-out :none
+         :trans-time 0
          :draw (fn [st]
                  (draw-greets-bg st)
                  (var local-t st)
@@ -498,7 +499,7 @@
                              direction (if (= (% (+ i slide-idx) 2) 0) 1 -1)
                              (print-w text-w) (print name 0 -20 0 false 1 true)
                              target-x (/ (- WIDTH print-w) 2)
-                             start-x (if (> direction 0) (+ WIDTH 20) (- (+ print-w 20)))
+                             start-x (if (< 0 direction) (+ WIDTH 20) (- (+ print-w 20)))
                              entry-progress (math.min 1.0 (/ local-t 25))
                              eased-t (- 1 (math.pow (- 1 entry-progress) 3))
                              current-x (lerp start-x target-x eased-t)
@@ -509,7 +510,7 @@
                          (print name (+ final-x 1) (+ line-y 1) 0 false font-scale)
                          (print name final-x line-y text-color false font-scale))))))}
         {:duration 400
-         :transition-out :fade
+         :transition-out :scanlines
          :trans-time 30
          :draw (fn [st]
                  (draw-greets-bg st)
