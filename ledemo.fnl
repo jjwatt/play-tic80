@@ -3,7 +3,7 @@
 ;; desc:    My first full demo
 ;; site:    jjwatt/play-tic80
 ;; license: GPL3
-;; version: 0.2
+;; version: 0.5
 ;; script:  fennel
 ;; strict:  true
 (global WIDTH 240)
@@ -121,10 +121,14 @@
     (/ (+ ch0-vol ch1-vol) 30.0)))
 
 (fn get-channel-vol [ch]
-  (let [base-addr 0x0FF9C
-        ch-offset (* ch 8)
-        vol-byte (peek (+ base-addr ch-offset))
-        raw-vol (band vol-byte 0x0F)]
+  "Direct mapping to avoid any inline calculation shifting anomalies."
+  (let [addr (match ch
+               0 0x0FF9C
+               1 0x0FFA4
+               2 0x0FFAF  ; Double check if channel 2 offset is exactly 8 bytes or has padding
+               3 0x0FFB4  ; Custom layout check
+               _ 0x0FF9C)
+        raw-vol (band (peek addr) 0x0F)]
     (/ raw-vol 15.0)))
 
 (fn draw-rotated-line [p1 p2 cx cy angle twist-factor scale-y color-idx line-state]
@@ -202,8 +206,11 @@
               (pix sx sy color))))))))
 
 (fn draw-plasma [st]
-  "Generate an interference pattern plasma mapped directly to pixel space."
-  (let [t-factor (* st 0.04)]
+  "Generates an interference pattern plasma mapped directly to pixel space."
+  (let [hihat (get-channel-vol 1)
+        bass (get-channel-vol 2)
+        t-factor (+ (* st 0.04) (* hihat 0.2))
+        color-spread (+ 3 (* bass 4))]
     (for [y 0 HEIGHT 2]
       (for [x 0 WIDTH 2]
         (let [v1 (math.sin (+ (* x 0.05) t-factor))
@@ -212,9 +219,9 @@
               cx (+ x (* 10 (math.sin t-factor)))
               cy (+ y (* 10 (math.cos t-factor)))
               v4 (math.sin (* 0.05 (math.sqrt (+ (* cx cx) (* cy cy)))))
-              ;; Combine waves.
+
               total-v (+ v1 v2 v3 v4)
-              color-idx (+ 4 (math.floor (* 3 (+ total-v 4))))]
+              color-idx (+ 4 (math.floor (* color-spread (+ total-v 4))))]
           (rect x y 2 2 (% color-idx 15)))))))
 
 (fn draw-wave-tunnel [st]
@@ -222,7 +229,7 @@
   (let [cx (/ WIDTH 2)
         cy (/ HEIGHT 2)
         ring-count 20
-        audio-kick (get-bass-amplitude)]
+        audio-kick (get-channel-vol 0)]
     (for [i 1 ring-count]
       (let [ring-t (+ st (* i 8))
             ;; Push standard radius out wider if sound is louder.
@@ -276,15 +283,19 @@
 
 (fn draw-ambient-background [st]
   "Draws a faint shifting starfield grid."
-  (let [time-step (* st 0.05)
-        bg-scale 0.10]
+  (let [bass (get-channel-vol 0)
+        time-step (* st 0.05)
+        bg-scale 0.10
+        threshold (- 0.5 (* bass 0.15))]
     (for [y 0 HEIGHT 8]
       (for [x 0 WIDTH 8]
         (let [n-val (perlin-noise (* x bg-scale) (+ (* y bg-scale) time-step))]
-          (when (< 0.5 n-val)
+          (when (< threshold n-val)
             (let [color-wave (% (+ (* n-val 5) (/ st 8)) 5)
                   bg-palette [1 2 8 12 14]
-                  bg-color (. bg-palette (+ 1 (math.floor color-wave)))]
+                  bg-color (if (> bass 0.7)
+                               15
+                               (. bg-palette (+ 1 (math.floor color-wave))))]
               (pix x y bg-color))))))))
 
 (fn apply-wipe [progress mode]
@@ -507,4 +518,3 @@
 ;; <PALETTE>
 ;; 000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57
 ;; </PALETTE>
-
