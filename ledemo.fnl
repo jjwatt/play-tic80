@@ -496,7 +496,7 @@
                              current-x (lerp start-x target-x eased-t)
                              line-y (+ (- center-y (* num-names 8)) (* i 20))
                              base-color 12
-                             text-color (if (< 0.6 snare) 15 base-color)
+                             text-color (if (< 0.6 snare) 14 base-color)
                              final-x (if (< 0.5 kick) (+ current-x (- (math.random 0 2) 1)) current-x)]
                          (print name (+ final-x 1) (+ line-y 1) 0 false font-scale)
                          (print name final-x line-y text-color false font-scale))))))}])
