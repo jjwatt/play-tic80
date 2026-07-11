@@ -351,6 +351,7 @@
         {:duration 300 :names ["@lukelightCO" "@center_of_chaos" "@torquevoid" "@devabram" "@olavostauros"]}
         {:duration 300 :names ["@Thelonius_1" "@monads4meals" "@HSVSphere" "@ludwigABAP"]}
         {:duration 300 :names ["@WadeGrimridge" "@traits_reality" "@LewisCTech" "@Duskyy78"]}
+        {:duration 300 :names ["@imnonplussed" "@LukasHozda" "@CWood_sdf" "@BarellTitor44"]}
         {:duration 300 :names ["@valigo" "@tsoding"]}
         {:duration 300 :names ["technomancy" "fennel-lang"]}
         {:duration 500 :names ["TPOT AND ALL TIC-80 HACKERS!" "ledemo" "by (infinite-jes)" "2026"]}])
