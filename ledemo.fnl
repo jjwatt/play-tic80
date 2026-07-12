@@ -347,14 +347,15 @@
         (line 0 y WIDTH (+ y x-offset) 1)))))
 
 (local greets-data
-       [{:duration 150 :names ["GREETS:" "FARBRAUSCH" "RAZOR 1911" "FAIRLIGHT"]}
+       [{:duration 150 :names ["GREETS:" "FARBRAUSCH" "RAZOR 1911" "FAIRLIGHT" "ATARI SCENE"]}
         {:duration 300 :names ["@lukelightCO" "@center_of_chaos" "@torquevoid" "@devabram" "@olavostauros"]}
         {:duration 300 :names ["@Thelonius_1" "@monads4meals" "@HSVSphere" "@ludwigABAP"]}
         {:duration 300 :names ["@WadeGrimridge" "@traits_reality" "@LewisCTech" "@Duskyy78"]}
         {:duration 300 :names ["@imnonplussed" "@LukasHozda" "@CWood_sdf" "@BarellTitor44"]}
+        {:duration 300 :names ["@LXIXthenumber" "@Aliasing__" "@e0syn" "@zuhaitz_dev" "@sudo_goreng"]}
         {:duration 300 :names ["@valigo" "@tsoding"]}
         {:duration 300 :names ["technomancy" "fennel-lang"]}
-        {:duration 500 :names ["TPOT AND ALL TIC-80 HACKERS!" "ledemo" "by (infinite-jes)" "2026"]}])
+        {:duration 300 :names ["TPOT AND ALL TIC-80 HACKERS!" "ledemo" "by (infinite-jes)" "2026"]}])
 
 (local greets-duration
        ((fn []
@@ -449,8 +450,8 @@
                        p2 {:x (/ WIDTH 2) :y HEIGHT}
                        p3 {:x WIDTH :y 0}
                        line-state {:total 0 :max nil}
-                       kick (get-channel-vol 0 1.8)
-                       snare (get-channel-vol 1 2.0)
+                       kick (get-channel-vol 0 1.0)
+                       snare (get-channel-vol 1 1.0)
                        base-angle (* (+ st 240) (math.rad 0.25))
                        angle (+ base-angle (* kick (math.rad 15)))
                        twist-factor (+ 1 (* snare 3.0))]
@@ -494,17 +495,17 @@
                          snare (get-channel-vol 1 1.5)
                          center-y (/ HEIGHT 2)
                          num-names (# slide.names)
-                         font-scale 1.5]
+                         font-scale 1]
                      (for [i 1 num-names]
                        (let [name (. slide.names i)
                              direction (if (= (% (+ i slide-idx) 2) 0) 1 -1)
                              (print-w text-w) (print name 0 -20 0 false 1 true)
-                             target-x (/ (- WIDTH print-w) 2)
+                             target-x (- (/ (- WIDTH print-w) 2) 20)
                              start-x (if (< 0 direction) (+ WIDTH 20) (- (+ print-w 20)))
                              entry-progress (math.min 1.0 (/ local-t 25))
                              eased-t (- 1 (math.pow (- 1 entry-progress) 3))
                              current-x (lerp start-x target-x eased-t)
-                             line-y (+ (- center-y (* num-names 8)) (* i 20))
+                             line-y (- (+ (- center-y (* num-names 8)) (* i 20)) 10)
                              base-color 12
                              text-color (if (< 0.6 snare) 14 base-color)
                              final-x (if (< 0.5 kick) (+ current-x (- (math.random 0 2) 1)) current-x)]
