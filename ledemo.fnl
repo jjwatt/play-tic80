@@ -452,9 +452,10 @@
                        line-state {:total 0 :max nil}
                        kick (get-channel-vol 0 1.0)
                        snare (get-channel-vol 1 1.0)
-                       base-angle (* (+ st 240) (math.rad 0.25))
-                       angle (+ base-angle (* kick (math.rad 15)))
-                       twist-factor (+ 1 (* snare 3.0))]
+                       time-step (+ st (* kick 25))
+                       angle (* (+ time-step 240) (math.rad 0.25))
+                       base-twist (math.sin (* st 0.02))
+                       twist-factor (+ 1 (* base-twist (+ 0.5 (* snare 0.35))))]
                    (draw-gasket p1 p2 p3 5 cx cy angle twist-factor 1.0 1 line-state)))}
         ;; Copper Curtain Background Grid
         {:duration 300
