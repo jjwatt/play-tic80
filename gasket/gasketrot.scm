@@ -30,8 +30,8 @@
 	 (sin-a1 (sin angle1))
 	 (rx1 (+ (- (* tx1 cos-a1) (* ty1 sin-a1)) cx))
 	 (ry1 (+ (- (* tx1 sin-a1) (* ty1 cos-a1)) cy))
-	 (sx1 (+ (- rx1) WIDTH))
-	 (sy1 (+ (- ry1) HEIGHT))
+	 (sx1 (round (+ (- rx1) WIDTH)))
+	 (sy1 (round (+ (- ry1) HEIGHT)))
 
 	 (tx2 (- (p2 'x) cx))
 	 (ty2 (- (p2 'y) cy))
@@ -41,8 +41,8 @@
 	 (sin-a2 (sin angle2))
 	 (rx2 (+ (- (* tx2 cos-a2) (* ty2 sin-a2)) cx))
 	 (ry2 (+ (- (* tx2 sin-a2) (* ty2 cos-a2)) cy))
-	 (sx2 (+ (- rx2) WIDTH))
-	 (sy2 (+ (- ry2) HEIGHT)))
+	 (sx2 (round (+ (- rx2) WIDTH)))
+	 (sy2 (round (+ (- ry2) HEIGHT))))
     (t80::line sx1 sy1 sx2 sy2 1)))
 
 (define (draw-gasket p1 p2 p3 depth cx cy angle)
