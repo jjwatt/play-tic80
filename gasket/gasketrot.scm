@@ -17,10 +17,71 @@
   (if (and (not c0) (not c1))
       (do ((i 0 (+ i 1)))
 	  ((> i 15))
-	(poke4 (+ i (* #x3FF0 2)) i))
-      (poke4 (+ c0 (* #x3FF0 2)) c1)))
+	(t80::poke4 (+ i (* #x3FF0 2)) i))
+      (t80::poke4 (+ c0 (* #x3FF0 2)) c1)))
 
-(define (TIC))
+(define (draw-rotated-line p1 p2 cx cy angle)
+  "Rotates two points and draws a line between them in one go."
+  (let* ((tx1 (- (p1 'x) cx))
+	 (ty1 (- (p1 'y) cy))
+	 (dist1 (sqrt (+ (* tx1 tx1) (* ty1 ty1))))
+	 (angle1 (+ angle (/ dist1 40)))
+	 (cos-a1 (cos angle1))
+	 (sin-a1 (sin angle1))
+	 (rx1 (+ (- (* tx1 cos-a1) (* ty1 sin-a1)) cx))
+	 (ry1 (+ (- (* tx1 sin-a1) (* ty1 cos-a1)) cy))
+	 (sx1 (+ (- rx1) WIDTH))
+	 (sy1 (+ (- ry1) HEIGHT))
+
+	 (tx2 (- (p2 'x) cx))
+	 (ty2 (- (p2 'y) cy))
+	 (dist2 (sqrt (+ (* tx2 tx2) (* ty2 ty2))))
+	 (angle2 (+ angle (/ dist2 40)))
+	 (cos-a2 (cos angle2))
+	 (sin-a2 (sin angle2))
+	 (rx2 (+ (- (* tx2 cos-a2) (* ty2 sin-a2)) cx))
+	 (ry2 (+ (- (* tx2 sin-a2) (* ty2 cos-a2)) cy))
+	 (sx2 (+ (- rx2) WIDTH))
+	 (sy2 (+ (- ry2) HEIGHT)))
+    (t80::line sx1 sy1 sx2 sy2 1)))
+
+(define (draw-gasket p1 p2 p3 depth cx cy angle)
+  "Recursively draw the triangle outlines."
+  (if (= depth 0)
+      ;; base case: draw outer edges.
+      (begin
+	(draw-rotated-line p1 p2 cx cy angle)
+	(draw-rotated-line p2 p3 cx cy angle)
+	(draw-rotated-line p3 p1 cx cy angle))
+      ;; recursive case: subdivide.
+      (let* ((m12 (hash-table 'x (/ (+ (p1 'x) (p2 'x)) 2) 'y (/ (+ (p1 'y) (p2 'y)) 2)))
+	     (m23 (hash-table 'x (/ (+ (p2 'x) (p3 'x)) 2) 'y (/ (+ (p2 'y) (p3 'y)) 2)))
+	     (m31 (hash-table 'x (/ (+ (p3 'x) (p1 'x)) 2) 'y (/ (+ (p3 'y) (p1 'y)) 2)))
+	     (next-depth (- depth 1)))
+	(draw-gasket p1 m12 m31 next-depth cx cy angle)
+	(draw-gasket m12 p2 m23 next-depth cx cy angle)
+	(draw-gasket m31 m23 p3 next-depth cx cy angle))))
+
+(define (BDR y)
+  "Raster interrupt for rotating palette, skip black."
+  (let* ((scroll-speed 0.5)
+	 (line-index (+ y (* t scroll-speed)))
+	 (total-lines 64.0)
+	 (phase (/ (modulo line-index total-lines) total-lines))
+	 (num (floor (+ 2 (* 13 phase)))))
+    (pal 1 num)))
+
+(define (TIC)
+  (t80::cls 0)
+  (let* ((cx (/ WIDTH 2))
+	 (cy (/ HEIGHT 2))
+	 ;; math.rad(0.25)
+	 (angle (* t 0.004363323))
+	 (p1 (hash-table 'x 0 'y HEIGHT))
+	 (p2 (hash-table 'x (/ WIDTH 2) 'y 0))
+	 (p3 (hash-table 'x WIDTH 'y HEIGHT)))
+    (draw-gasket p1 p2 p3 5 cx cy angle))
+  (inc! t 1))
 
 ;; <TILES>
 ;; 001:eccccccccc888888caaaaaaaca888888cacccccccacc0ccccacc0ccccacc0ccc
