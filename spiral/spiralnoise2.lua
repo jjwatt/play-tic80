@@ -13,7 +13,7 @@ centerY = 75
 numPoints = 150
 
 function customRandom()
-	return 1 - math.pow(math.random(), 5)
+   return 1 - math.pow(math.random(), 5)
 end
 
 function mySpiral(centerx, centery, radius, color)
@@ -34,39 +34,39 @@ function mySpiral(centerx, centery, radius, color)
 end
 
 function myNoiseSpiral(centerx, centery, radius, color)
-	for i = 0, 10 do
-		startradius = math.random(1, radius)
-	 radiusNoise = math.random(10)
-  startangle = math.random(0, 90)
-  endangle = 360*4 + math.random(360*4)
-  anglestep = 2 + math.random(1, 2)
-		lastx, lasty = -999, -999
- 	for angle = startangle, endangle, anglestep do
-  		radiusNoise = radiusNoise + 0.08
-  		thisradius = startradius
-  																	+ (radiusNoise 
-  			              * (1 - customRandom()))
-  		startradius = startradius + 0.05 + (1-customRandom())
- 			radians = math.rad(angle)
-  		local x = centerx + thisradius * math.cos(radians)
-  		local y = centery + thisradius * math.sin(radians)
-  		if lastx > -999 then
-  				line(x, y, lastx, lasty, color)
-  		end
-  		lastx, lasty = x, y
- 		end
-	end
+   for i = 0, 10 do
+      startradius = math.random(1, radius)
+      radiusNoise = math.random(10)
+      startangle = math.random(0, 90)
+      endangle = 360*4 + math.random(360*4)
+      anglestep = 2 + math.random(1, 2)
+      lastx, lasty = -999, -999
+      for angle = startangle, endangle, anglestep do
+	 radiusNoise = radiusNoise + 0.08
+	 thisradius = startradius
+	    + (radiusNoise 
+	       * (1 - customRandom()))
+	 startradius = startradius + 0.05 + (1-customRandom())
+	 radians = math.rad(angle)
+	 local x = centerx + thisradius * math.cos(radians)
+	 local y = centery + thisradius * math.sin(radians)
+	 if lastx > -999 then
+	    line(x, y, lastx, lasty, color)
+	 end
+	 lastx, lasty = x, y
+      end
+   end
 end
 
 function TIC() 
-	-- cls(1)
-	-- circb(centerX, centerY, radius+10, 14)
-	-- myNoiseSpiral(centerX, centerY, radius, 4)
-	-- print(math.random(), 0, 0)
-	-- print(1 - customRandom(), 0, 10)
-	cls(1)
- myNoiseSpiral(centerX, centerY, radius, math.random(0, 15))
-	t = t + 1
+   -- cls(1)
+   -- circb(centerX, centerY, radius+10, 14)
+   -- myNoiseSpiral(centerX, centerY, radius, 4)
+   -- print(math.random(), 0, 0)
+   -- print(1 - customRandom(), 0, 10)
+   cls(1)
+   myNoiseSpiral(centerX, centerY, radius, math.random(0, 15))
+   t = t + 1
 end
 
 -- <TILES>
