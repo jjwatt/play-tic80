@@ -23,7 +23,7 @@
       (t80::poke4 (+ c0 (* #x3FF0 2)) c1)))
 
 (define (generate-points count)
-  "Iteratively generate points for the Sierpinski triangle using the Chaos Game."
+  "Iteratively generate points for the Sierpinski triangle."
   (let ((v0 (cons 0.0 0.0))
 	(v1 (cons (/ WIDTH 2.0) (exact->inexact HEIGHT)))
 	(v2 (cons (exact->inexact WIDTH) 0.0)))

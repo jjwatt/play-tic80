@@ -18,7 +18,7 @@
   (let* ((cx (/ WIDTH 2))
 	 (cy (/ HEIGHT 2))
 	 (size 30)
-	 (angle (* t (deg->rad 1)))
+	 (angle (* t (deg->rad 1.5)))
 	 (cos-a (cos angle))
 	 (sin-a (sin angle))
 	 (pts '((-30 . -30)
