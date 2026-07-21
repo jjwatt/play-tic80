@@ -108,9 +108,6 @@
           128)
        1)))
 
-(fn custom-random []
-  (- 1 (math.pow (math.random) 5)))
-
 (var last-time (time))
 (var current-fps 60)
 (fn draw-fps []
