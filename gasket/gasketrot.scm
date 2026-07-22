@@ -20,6 +20,9 @@
 	(t80::poke4 (+ i (* #x3FF0 2)) i))
       (t80::poke4 (+ c0 (* #x3FF0 2)) c1)))
 
+(define (deg->rad degrees)
+  (* degrees (/ pi 180)))
+
 (define (draw-rotated-line p1 p2 cx cy angle)
   "Rotates two points and draws a line between them in one go."
   (let* ((tx1 (- (p1 'x) cx))
@@ -64,7 +67,7 @@
 
 (define (BDR y)
   "Raster interrupt for rotating palette, skip black."
-  (let* ((scroll-speed 0.5)
+  (let* ((scroll-speed 0.4)
 	 (line-index (+ y (* t scroll-speed)))
 	 (total-lines 64.0)
 	 (phase (/ (modulo line-index total-lines) total-lines))
@@ -75,8 +78,7 @@
   (t80::cls 0)
   (let* ((cx (/ WIDTH 2))
 	 (cy (/ HEIGHT 2))
-	 ;; math.rad(0.25)
-	 (angle (* t 0.004363323))
+	 (angle (* t (deg->rad 0.25)))
 	 (p1 (hash-table 'x 0 'y HEIGHT))
 	 (p2 (hash-table 'x (/ WIDTH 2) 'y 0))
 	 (p3 (hash-table 'x WIDTH 'y HEIGHT)))
